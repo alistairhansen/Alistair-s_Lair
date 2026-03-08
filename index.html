@@ -1936,32 +1936,32 @@ async function loadGridSheet() {
 loadGridSheet();
 
 // Fetch YouTube subscriber count from Google Sheet tab (gid=1270814995)
-async function fetchYouTubeSubs() {
+// Sheet layout: row 1 = headers (e.g. youtube_subs, steam_builds), row 2 = values
+async function fetchStatsSheet() {
   const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1270814995&output=csv';
   try {
     const csv = await fetchCSV(sheetUrl);
-    if (!csv) return null;
+    if (!csv) return {};
     const rows = parseCSV(csv);
-    // Look for a row whose first column contains 'youtube' or 'sub' (case-insensitive)
-    // Sheet layout: col A = key, col B = value
-    for (const row of rows) {
-      const key = (row[0] || '').toLowerCase().trim();
-      const val = (row[1] || '').trim();
-      if ((key.includes('youtube') || key.includes('sub')) && val) {
-        // If it's a plain number, format it; otherwise use as-is
-        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
-        if (!isNaN(num) && num > 0) return formatSubCount(num);
-        if (val) return val; // e.g. already formatted like "1.2K"
-      }
-    }
-    // Fallback: try second row, second column if sheet is just a single value
-    if (rows.length >= 2 && rows[1][0]) {
-      const val = rows[1][0].trim() || (rows[1][1] || '').trim();
+    if (rows.length < 2) return {};
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const values  = rows[1];
+    const map = {};
+    headers.forEach((h, i) => { map[h] = (values[i] || '').trim(); });
+    return map;
+  } catch(e) { return {}; }
+}
+
+async function fetchYouTubeSubs() {
+  const map = await fetchStatsSheet();
+  for (const [key, val] of Object.entries(map)) {
+    if ((key.includes('youtube') || key.includes('sub')) && val) {
       const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num) && num > 0) return formatSubCount(num);
+      if (val) return val;
     }
-  } catch(e) { /* fall through */ }
-  return null; // fallback: keep hardcoded value
+  }
+  return null;
 }
 
 function formatSubCount(n) {
@@ -1985,22 +1985,14 @@ function formatSubCount(n) {
 
 // Fetch Steam Workshop submission count from Google Sheet tab (gid=1270814995)
 async function fetchSteamBuilds() {
-  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1270814995&output=csv';
-  try {
-    const csv = await fetchCSV(sheetUrl);
-    if (!csv) return null;
-    const rows = parseCSV(csv);
-    // Look for a row whose first column contains 'steam', 'workshop', or 'build'
-    for (const row of rows) {
-      const key = (row[0] || '').toLowerCase().trim();
-      const val = (row[1] || '').trim();
-      if ((key.includes('steam') || key.includes('workshop') || key.includes('build')) && val) {
-        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
-        if (!isNaN(num) && num > 0) return num.toString();
-        if (val) return val;
-      }
+  const map = await fetchStatsSheet();
+  for (const [key, val] of Object.entries(map)) {
+    if ((key.includes('steam') || key.includes('workshop') || key.includes('build')) && val) {
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num) && num > 0) return num.toString();
+      if (val) return val;
     }
-  } catch(e) { /* fall through */ }
+  }
   return null;
 }
 
