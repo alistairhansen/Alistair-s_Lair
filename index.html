@@ -549,6 +549,36 @@
     color: var(--navy);
   }
 
+  .partner-links {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .partner-link.discord {
+    background: rgba(71,82,196,0.15);
+    color: #7289da;
+    border-color: #7289da;
+  }
+
+  .partner-link.discord:hover {
+    background: #7289da;
+    color: #fff;
+  }
+
+  .partner-link.youtube {
+    background: rgba(204,0,0,0.12);
+    color: #ff4040;
+    border-color: #cc0000;
+  }
+
+  .partner-link.youtube:hover {
+    background: #cc0000;
+    color: #fff;
+  }
+
   /* ── FEATURED VIDEO BOX ─────────────── */
   .hero-layout {
     display: flex;
@@ -1536,15 +1566,36 @@ function renderPartners() {
   if (!partners.length) {
     grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">Paste your Google Sheet CSV URL above and click Load Partners.</div>';
   } else {
-    grid.innerHTML = partners.map(p => `
+    grid.innerHTML = partners.map(p => {
+      const hasDiscord  = p.discord && p.discord !== '#' && p.discord !== '';
+      const hasYoutube  = p.youtube && p.youtube !== '#' && p.youtube !== '';
+      const hasBoth     = hasDiscord && hasYoutube;
+      let buttonsHtml;
+      if (hasBoth) {
+        buttonsHtml = `
+          <div class="partner-links">
+            <a class="partner-link discord" href="${p.discord}" target="_blank">💬 Discord</a>
+            <a class="partner-link youtube" href="${p.youtube}" target="_blank">▶ YouTube</a>
+          </div>`;
+      } else if (hasDiscord) {
+        buttonsHtml = `<a class="partner-link discord" href="${p.discord}" target="_blank">💬 Join Discord</a>`;
+      } else if (hasYoutube) {
+        buttonsHtml = `<a class="partner-link youtube" href="${p.youtube}" target="_blank">▶ YouTube Channel</a>`;
+      } else if (p.url && p.url !== '#') {
+        buttonsHtml = `<a class="partner-link" href="${p.url}" target="_blank">Visit →</a>`;
+      } else {
+        buttonsHtml = '';
+      }
+      return `
       <div class="partner-card">
         ${p.logo
           ? `<img class="partner-logo" src="${p.logo}" alt="${p.name}" onerror="this.outerHTML='<div class=\\'partner-icon\\'>🤝</div>'">`
           : `<div class="partner-icon">🤝</div>`}
         <h3>${p.name}</h3>
         <p>${p.desc}</p>
-        <a class="partner-link" href="${p.url}" target="_blank">Visit →</a>
-      </div>`).join('');
+        ${buttonsHtml}
+      </div>`;
+    }).join('');
   }
 
   // Update partner count stats
@@ -1604,6 +1655,8 @@ async function loadPartnersSheet() {
     const logoIdx    = headers.findIndex(h => h.includes('logo') || h.includes('image') || h.includes('img'));
     const linkIdx    = headers.findIndex(h => h.includes('link') || h.includes('url'));
     const taglineIdx = headers.findIndex(h => h.includes('tagline') || h === 'tagline');
+    const discordIdx = headers.findIndex(h => h.includes('discord'));
+    const youtubeIdx = headers.findIndex(h => h.includes('youtube') || h.includes('yt'));
 
     // If there's a tagline column, grab it from the first data row and update the hero
     if (taglineIdx >= 0) {
@@ -1615,10 +1668,12 @@ async function loadPartnersSheet() {
     }
 
     partners = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
-      name: nameIdx >= 0 ? r[nameIdx] : 'Partner',
-      desc: descIdx >= 0 ? r[descIdx] : '',
-      logo: logoIdx >= 0 ? r[logoIdx] : '',
-      url:  linkIdx >= 0 ? r[linkIdx]  : '#',
+      name:    nameIdx    >= 0 ? r[nameIdx]    : 'Partner',
+      desc:    descIdx    >= 0 ? r[descIdx]    : '',
+      logo:    logoIdx    >= 0 ? r[logoIdx]    : '',
+      url:     linkIdx    >= 0 ? r[linkIdx]    : '#',
+      discord: discordIdx >= 0 ? r[discordIdx].trim() : '',
+      youtube: youtubeIdx >= 0 ? r[youtubeIdx].trim() : '',
     }));
     if (!partners.length) { grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No partners found.</div>'; return; }
     renderPartners();
