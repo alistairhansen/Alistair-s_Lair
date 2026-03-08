@@ -1193,6 +1193,14 @@
   <div class="section-wrap">
     <div class="section-title">Build Challenges</div>
     <p class="section-sub">Click a challenge to see the video, winner, and description</p>
+    <div class="sheet-url-tip">
+      <strong>How to connect your Google Sheet:</strong> Publish your sheet to the web (File → Share → Publish to web → CSV), then paste the URL below.<br>
+      Columns expected: <code>Name</code>, <code>Date</code>, <code>Winner</code>, <code>Description</code>, <code>VideoID</code>
+    </div>
+    <div class="workshop-header">
+      <input type="text" id="challenges-sheet-url" placeholder="Paste your Google Sheet CSV URL here…">
+      <button class="workshop-btn" onclick="loadChallengesSheet()">Load Challenges</button>
+    </div>
     <div class="challenges-list" id="challenges-list"></div>
   </div>
 </div>
@@ -1288,7 +1296,7 @@ const announcements = [
   { type:'event', title:'🎉 Discord Server Launch', body:"The official Alistair's Lair Discord is live! Join for exclusive previews and community chat.", date:'May 15, 2025' },
 ];
 
-const challenges = [
+let challenges = [
   { id:1, name:'Medieval Fortress Challenge', date:'April 2025', winner:'🏆 BuildKingXL', description:"Contestants had to build the most imposing medieval fortress using only vanilla assets. Over 20 entries were submitted, with some incredible designs. BuildKingXL took the crown with a jaw-dropping castle complete with working drawbridge mechanics.", videoId:'' },
   { id:2, name:'Sci-Fi Space Station Challenge', date:'March 2025', winner:'🏆 CosmoBuilder99', description:'The theme was futuristic space stations — floating fortresses in the stars. CosmoBuilder99 wowed everyone with a multi-ring rotating station design. An incredible display of creative engineering.', videoId:'' },
   { id:3, name:'Post-Apocalyptic Bunker Challenge', date:'February 2025', winner:'🏆 SurvivorCraft', description:"Gritty, functional, and atmospheric — contestants built bunkers to survive the end of the world. SurvivorCraft's entry had working traps, storage systems, and beautiful environmental storytelling.", videoId:'' },
@@ -1505,6 +1513,42 @@ async function loadSheet() {
   }
 }
 
+async function loadChallengesSheet() {
+  const url = document.getElementById('challenges-sheet-url').value.trim();
+  const list = document.getElementById('challenges-list');
+  if (!url) { list.innerHTML = '<div class="empty-msg">Please enter a valid Google Sheet CSV URL.</div>'; return; }
+  list.innerHTML = `<div class="loading-msg"><div class="spinner"></div><br>Loading challenges…</div>`;
+  try {
+    const csv = await fetchCSV(url);
+    const rows = parseCSV(csv);
+    if (rows.length < 2) { list.innerHTML = '<div class="empty-msg">No data found in sheet.</div>'; return; }
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const nameIdx    = headers.findIndex(h => h.includes('name'));
+    const dateIdx    = headers.findIndex(h => h.includes('date'));
+    const winnerIdx  = headers.findIndex(h => h.includes('winner'));
+    const descIdx    = headers.findIndex(h => h.includes('desc'));
+    const videoIdx   = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
+
+    challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
+      const winner = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
+      return {
+        id: i + 1,
+        name:        nameIdx   >= 0 ? r[nameIdx].trim()   : 'Untitled Challenge',
+        date:        dateIdx   >= 0 ? r[dateIdx].trim()   : '',
+        winner:      winner.startsWith('🏆') ? winner : (winner ? '🏆 ' + winner : ''),
+        description: descIdx   >= 0 ? r[descIdx].trim()   : '',
+        videoId:     videoIdx  >= 0 ? r[videoIdx].trim()  : '',
+      };
+    });
+
+    if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
+    renderChallengesList();
+    localStorage.setItem('challenges-sheet-url', url);
+  } catch(e) {
+    list.innerHTML = `<div class="empty-msg">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
+  }
+}
+
 function parseCSV(text) {
   return text.trim().split('\n').map(line => {
     const cells = []; let cur = '', inQ = false;
@@ -1522,9 +1566,16 @@ function parseCSV(text) {
 // ── INIT ───────────────────────────────────────────────────────────────────
 renderAnnouncements('home-announcements', 3);
 renderAnnouncements('all-announcements');
-renderChallengesList();
 renderGallery();
 renderPartners();
+
+// Auto-restore challenges sheet URL if saved
+(function() {
+  const saved = localStorage.getItem('challenges-sheet-url');
+  const input = document.getElementById('challenges-sheet-url');
+  if (saved && input) { input.value = saved; loadChallengesSheet(); }
+  else { renderChallengesList(); } // show hardcoded defaults
+})();
 
 // Auto-load partners from hardcoded sheet URL
 (function() {
