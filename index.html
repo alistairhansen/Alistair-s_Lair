@@ -483,18 +483,54 @@
     background: var(--navy-mid);
     border: 1px solid rgba(245,131,31,0.2);
     border-radius: 12px;
-    padding: 24px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 0;
     text-align: center;
     transition: border-color 0.2s, transform 0.2s;
+    overflow: hidden;
   }
 
   .partner-card:hover {
     border-color: var(--orange);
     transform: translateY(-3px);
+  }
+
+  .partner-card-banner {
+    width: 100%;
+    height: 100px;
+    background: var(--navy-light);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .partner-card-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(13,27,46,0.7));
+    pointer-events: none;
+  }
+
+  .partner-logo-wrap {
+    position: relative;
+    z-index: 2;
+    margin-bottom: -36px;
+  }
+
+  .partner-card-body {
+    padding: 44px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
   }
 
   .partner-logo {
@@ -503,8 +539,9 @@
     object-fit: contain;
     border-radius: 10px;
     background: var(--navy-light);
-    border: 1px solid rgba(245,131,31,0.2);
+    border: 2px solid rgba(245,131,31,0.3);
     padding: 4px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)) drop-shadow(0 0 6px rgba(0,0,0,0.6));
   }
 
   .partner-icon {
@@ -1588,12 +1625,18 @@ function renderPartners() {
       }
       return `
       <div class="partner-card">
-        ${p.logo
-          ? `<img class="partner-logo" src="${p.logo}" alt="${p.name}" onerror="this.outerHTML='<div class=\\'partner-icon\\'>🤝</div>'">`
-          : `<div class="partner-icon">🤝</div>`}
-        <h3>${p.name}</h3>
-        <p>${p.desc}</p>
-        ${buttonsHtml}
+        <div class="partner-card-banner" style="${p.bg ? `background-image:url('${p.bg}');background-size:cover;background-position:center;` : ''}">
+          <div class="partner-logo-wrap">
+            ${p.logo
+              ? `<img class="partner-logo" src="${p.logo}" alt="${p.name}" onerror="this.outerHTML='<div class=\\'partner-icon\\'>🤝</div>'">`
+              : `<div class="partner-icon">🤝</div>`}
+          </div>
+        </div>
+        <div class="partner-card-body">
+          <h3>${p.name}</h3>
+          <p>${p.desc}</p>
+          ${buttonsHtml}
+        </div>
       </div>`;
     }).join('');
   }
@@ -1652,7 +1695,8 @@ async function loadPartnersSheet() {
     const headers = rows[0].map(h => h.toLowerCase().trim());
     const nameIdx    = headers.findIndex(h => h.includes('name'));
     const descIdx    = headers.findIndex(h => h.includes('desc'));
-    const logoIdx    = headers.findIndex(h => h.includes('logo') || h.includes('image') || h.includes('img'));
+    const logoIdx    = headers.findIndex(h => h === 'logo' || h === 'logo url' || h === 'logo_url' || h.includes('logo'));
+    const bgIdx      = headers.findIndex(h => h.includes('background') || h.includes('banner') || h === 'bg');
     const linkIdx    = headers.findIndex(h => h.includes('link') || h.includes('url'));
     const taglineIdx = headers.findIndex(h => h.includes('tagline') || h === 'tagline');
     const discordIdx = headers.findIndex(h => h.includes('discord'));
@@ -1668,12 +1712,13 @@ async function loadPartnersSheet() {
     }
 
     partners = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
-      name:    nameIdx    >= 0 ? r[nameIdx]    : 'Partner',
-      desc:    descIdx    >= 0 ? r[descIdx]    : '',
-      logo:    logoIdx    >= 0 ? r[logoIdx]    : '',
-      url:     linkIdx    >= 0 ? r[linkIdx]    : '#',
-      discord: discordIdx >= 0 ? r[discordIdx].trim() : '',
-      youtube: youtubeIdx >= 0 ? r[youtubeIdx].trim() : '',
+      name:       nameIdx    >= 0 ? r[nameIdx].trim()    : 'Partner',
+      desc:       descIdx    >= 0 ? r[descIdx].trim()    : '',
+      logo:       logoIdx    >= 0 ? r[logoIdx].trim()    : '',
+      bg:         bgIdx      >= 0 ? r[bgIdx].trim()      : '',
+      url:        linkIdx    >= 0 ? r[linkIdx].trim()    : '#',
+      discord:    discordIdx >= 0 ? r[discordIdx].trim() : '',
+      youtube:    youtubeIdx >= 0 ? r[youtubeIdx].trim() : '',
     }));
     if (!partners.length) { grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No partners found.</div>'; return; }
     renderPartners();
