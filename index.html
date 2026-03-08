@@ -1044,12 +1044,11 @@
 
   .build-card {
     background: var(--navy-mid);
-    border: 1px solid rgba(245,131,31,0.2);
+    border: 2px solid rgba(245,131,31,0.45);
     border-radius: 12px;
     overflow: hidden;
     transition: border-color 0.2s, transform 0.2s;
     position: relative;
-    aspect-ratio: 4/3;
     cursor: pointer;
   }
 
@@ -1059,14 +1058,16 @@
   }
 
   .build-img {
-    position: absolute;
-    inset: 0;
+    width: 100%;
+    aspect-ratio: 4/3;
     background: var(--navy-light);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3rem;
     color: rgba(245,131,31,0.3);
+    position: relative;
+    overflow: hidden;
   }
 
   .build-img img {
@@ -1077,21 +1078,21 @@
   }
 
   .build-title-bar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
     padding: 10px 14px;
-    background: linear-gradient(to top, rgba(13,27,46,0.95), transparent);
+    background: var(--navy-mid);
     font-weight: 800;
     font-size: 0.92rem;
     color: var(--cream);
-    transition: opacity 0.25s;
+    text-align: center;
+    border-top: 1px solid rgba(245,131,31,0.2);
   }
 
   .build-overlay {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(13,27,46,0.45);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -1107,7 +1108,7 @@
   }
 
   .build-card:hover .build-overlay { opacity: 1; }
-  .build-card:hover .build-title-bar { opacity: 0; }
+  .build-card:hover .build-title-bar { opacity: 0.6; }
 
   .build-overlay h3 {
     font-size: 1rem;
@@ -1756,13 +1757,15 @@ async function loadSheet() {
     if (!builds.length) { container.innerHTML = '<div class="empty-msg">No builds found.</div>'; return; }
     container.innerHTML = `<div class="builds-grid">${builds.map(b => `
       <div class="build-card">
-        <div class="build-img">${b.image ? `<img src="${b.image}" alt="${b.name}" onerror="this.parentElement.innerHTML='🔧'">` : '🔧'}</div>
-        <div class="build-title-bar">${b.name}</div>
-        <div class="build-overlay">
-          <h3>${b.name}</h3>
-          ${b.desc ? `<p>${b.desc}</p>` : ''}
-          ${b.url ? `<a class="build-link" href="${b.url}" target="_blank" onclick="event.stopPropagation()">View on Workshop →</a>` : ''}
+        <div class="build-img">
+          ${b.image ? `<img src="${b.image}" alt="${b.name}" onerror="this.parentElement.innerHTML='🔧'">` : '🔧'}
+          <div class="build-overlay">
+            <h3>${b.name}</h3>
+            ${b.desc ? `<p>${b.desc}</p>` : ''}
+            ${b.url ? `<a class="build-link" href="${b.url}" target="_blank" onclick="event.stopPropagation()">View on Workshop →</a>` : ''}
+          </div>
         </div>
+        <div class="build-title-bar">${b.name}</div>
       </div>`).join('')}</div>`;
   } catch(e) {
     container.innerHTML = `<div class="empty-msg">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
