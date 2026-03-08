@@ -1569,12 +1569,12 @@ renderAnnouncements('all-announcements');
 renderGallery();
 renderPartners();
 
-// Auto-restore challenges sheet URL if saved
+// Auto-load challenges from hardcoded sheet URL
 (function() {
-  const saved = localStorage.getItem('challenges-sheet-url');
+  const hardcodedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=8812323&output=csv';
   const input = document.getElementById('challenges-sheet-url');
-  if (saved && input) { input.value = saved; loadChallengesSheet(); }
-  else { renderChallengesList(); } // show hardcoded defaults
+  if (input) { input.value = hardcodedUrl; loadChallengesSheet(); }
+  else { renderChallengesList(); }
 })();
 
 // Auto-load partners from hardcoded sheet URL
