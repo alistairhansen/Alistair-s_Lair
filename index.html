@@ -1403,6 +1403,21 @@ function renderPartners() {
   }
 }
 
+async function fetchCSV(url) {
+  const proxies = [
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+  ];
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy(url));
+      if (res.ok) { const text = await res.text(); if (text.trim()) return text; }
+    } catch(e) {}
+  }
+  throw new Error('All proxies failed — check your sheet is published to the web');
+}
+
 async function loadPartnersSheet() {
   const url = document.getElementById('partners-sheet-url').value.trim();
   const container = document.getElementById('partners-container');
@@ -1410,10 +1425,7 @@ async function loadPartnersSheet() {
   if (!url) { grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">Please enter a valid Google Sheet CSV URL.</div>'; return; }
   grid.innerHTML = `<div class="loading-msg" style="grid-column:1/-1"><div class="spinner"></div><br>Loading partners…</div>`;
   try {
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('Failed to fetch sheet');
-    const csv = await res.text();
+    const csv = await fetchCSV(url);
     const rows = parseCSV(csv);
     if (rows.length < 2) { grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No data found in sheet.</div>'; return; }
     const headers = rows[0].map(h => h.toLowerCase().trim());
@@ -1442,10 +1454,7 @@ async function loadSheet() {
   if (!url) { container.innerHTML = '<div class="empty-msg">Please enter a valid Google Sheet CSV URL.</div>'; return; }
   container.innerHTML = `<div class="loading-msg"><div class="spinner"></div><br>Loading builds…</div>`;
   try {
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('Failed to fetch');
-    const csv = await res.text();
+    const csv = await fetchCSV(url);
     const rows = parseCSV(csv);
     if (rows.length < 2) { container.innerHTML = '<div class="empty-msg">No data found.</div>'; return; }
     const headers = rows[0].map(h => h.toLowerCase().trim());
