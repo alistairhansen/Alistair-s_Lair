@@ -650,6 +650,13 @@
     background: var(--navy-light);
   }
 
+  .challenge-subtitle {
+    font-size: 0.75rem;
+    color: var(--cream-dim);
+    opacity: 0.7;
+    margin: 1px 0 2px;
+    font-style: italic;
+  }
   .challenge-row-left {
     display: flex;
     align-items: center;
@@ -1337,7 +1344,7 @@ function renderChallengesList() {
     <div class="challenge-row" onclick="showChallenge(${i})">
       <div class="challenge-row-left">
         <div class="challenge-num">#${c.id}</div>
-        <div><h3>${c.name}</h3><p>📅 ${c.date}</p></div>
+        <div><h3>${c.name}</h3>${c.subtitle ? `<p class="challenge-subtitle">${c.subtitle}</p>` : ''}<p>📅 ${c.date}</p></div>
       </div>
       <span class="challenge-winner">${c.winner}</span>
       <span class="challenge-arrow">→</span>
@@ -1516,21 +1523,23 @@ async function loadChallengesSheet() {
     const rows = parseCSV(csv);
     if (rows.length < 2) { list.innerHTML = '<div class="empty-msg">No data found in sheet.</div>'; return; }
     const headers = rows[0].map(h => h.toLowerCase().trim());
-    const nameIdx    = headers.findIndex(h => h.includes('name'));
-    const dateIdx    = headers.findIndex(h => h.includes('date'));
-    const winnerIdx  = headers.findIndex(h => h.includes('winner'));
-    const descIdx    = headers.findIndex(h => h.includes('desc'));
-    const videoIdx   = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
+    const nameIdx     = headers.findIndex(h => h.includes('name'));
+    const dateIdx     = headers.findIndex(h => h.includes('date'));
+    const winnerIdx   = headers.findIndex(h => h.includes('winner'));
+    const descIdx     = headers.findIndex(h => h.includes('desc'));
+    const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
+    const subtitleIdx = headers.findIndex(h => h.includes('subtitle') || h.includes('sub'));
 
     challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
       const winner = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
       return {
         id: i + 1,
-        name:        nameIdx   >= 0 ? r[nameIdx].trim()   : 'Untitled Challenge',
-        date:        dateIdx   >= 0 ? r[dateIdx].trim()   : '',
+        name:        nameIdx     >= 0 ? r[nameIdx].trim()     : 'Untitled Challenge',
+        date:        dateIdx     >= 0 ? r[dateIdx].trim()     : '',
         winner:      winner.startsWith('🏆') ? winner : (winner ? '🏆 ' + winner : ''),
-        description: descIdx   >= 0 ? r[descIdx].trim()   : '',
-        videoId:     videoIdx  >= 0 ? r[videoIdx].trim()  : '',
+        description: descIdx     >= 0 ? r[descIdx].trim()     : '',
+        videoId:     videoIdx    >= 0 ? r[videoIdx].trim()    : '',
+        subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
       };
     });
 
@@ -1583,11 +1592,15 @@ async function loadGridSheet() {
   const csv = await fetchCSV(url);
   if (!csv) return;
   const rows = parseCSV(csv);
-  // Build a key→value map (columns: Key, Value)
+  // Sheet layout: row 1 = keys, row 2 = values (horizontal)
   const map = {};
-  for (const row of rows) {
-    if (row.length >= 2 && row[0].trim()) {
-      map[row[0].trim()] = row[1].trim();
+  if (rows.length >= 2) {
+    const keys = rows[0];
+    const vals = rows[1];
+    for (let i = 0; i < keys.length; i++) {
+      const k = (keys[i] || '').trim();
+      const v = (vals[i] || '').trim();
+      if (k) map[k] = v;
     }
   }
   // Intro paragraphs
