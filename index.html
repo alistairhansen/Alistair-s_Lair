@@ -1592,16 +1592,12 @@ async function loadGridSheet() {
   const csv = await fetchCSV(url);
   if (!csv) return;
   const rows = parseCSV(csv);
-  // Sheet layout: row 1 = keys, row 2 = values (horizontal)
+  // Sheet layout: col A = key, col B = value (vertical, one pair per row)
   const map = {};
-  if (rows.length >= 2) {
-    const keys = rows[0];
-    const vals = rows[1];
-    for (let i = 0; i < keys.length; i++) {
-      const k = (keys[i] || '').trim();
-      const v = (vals[i] || '').trim();
-      if (k) map[k] = v;
-    }
+  for (const row of rows) {
+    const k = (row[0] || '').trim();
+    const v = (row[1] || '').trim();
+    if (k) map[k] = v;
   }
   // Intro paragraphs
   if (map['intro1']) {
