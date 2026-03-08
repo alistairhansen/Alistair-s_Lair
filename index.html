@@ -1935,40 +1935,32 @@ async function loadGridSheet() {
 }
 loadGridSheet();
 
-// Fetch YouTube subscriber count via RSS feed (no API key needed)
+// Fetch YouTube subscriber count from Google Sheet tab (gid=1270814995)
 async function fetchYouTubeSubs() {
-  const channelId = 'UCt_E7O8-rn_6ePdOKRtslJg';
-  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`,
-    `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`
-  ];
-
-  for (const proxy of proxies) {
-    try {
-      const res = await fetch(proxy);
-      if (!res.ok) continue;
-      const text = await res.text();
-      // Parse subscriber count from the media:statistics tag
-      const match = text.match(/subscriberCount['":\s]+(\d+)/i)
-        || text.match(/<yt:statistics[^>]+subscriberCount="(\d+)"/i);
-      if (match) {
-        const count = parseInt(match[1], 10);
-        return formatSubCount(count);
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1270814995&output=csv';
+  try {
+    const csv = await fetchCSV(sheetUrl);
+    if (!csv) return null;
+    const rows = parseCSV(csv);
+    // Look for a row whose first column contains 'youtube' or 'sub' (case-insensitive)
+    // Sheet layout: col A = key, col B = value
+    for (const row of rows) {
+      const key = (row[0] || '').toLowerCase().trim();
+      const val = (row[1] || '').trim();
+      if ((key.includes('youtube') || key.includes('sub')) && val) {
+        // If it's a plain number, format it; otherwise use as-is
+        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(num) && num > 0) return formatSubCount(num);
+        if (val) return val; // e.g. already formatted like "1.2K"
       }
-      // Fallback: count entries as a proxy (channel has published videos)
-      // Since RSS doesn't expose sub count directly in raw XML without yt: namespace,
-      // try parsing yt:statistics from namespace
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(text, 'application/xml');
-      const stats = xml.querySelector('statistics');
-      if (stats) {
-        const count = parseInt(stats.getAttribute('subscriberCount') || '0', 10);
-        if (count > 0) return formatSubCount(count);
-      }
-    } catch(e) { /* try next proxy */ }
-  }
+    }
+    // Fallback: try second row, second column if sheet is just a single value
+    if (rows.length >= 2 && rows[1][0]) {
+      const val = rows[1][0].trim() || (rows[1][1] || '').trim();
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num) && num > 0) return formatSubCount(num);
+    }
+  } catch(e) { /* fall through */ }
   return null; // fallback: keep hardcoded value
 }
 
