@@ -205,10 +205,12 @@
   /* ── SOCIAL LINK BOXES ───────────────── */
   .social-links {
     display: flex;
+    flex-direction: row;
     gap: 16px;
     flex-wrap: wrap;
     justify-content: center;
     margin-bottom: 0;
+    width: auto;
   }
 
   .social-btn {
@@ -618,10 +620,9 @@
 
   /* ── FEATURED VIDEO BOX ─────────────── */
   .hero-layout {
-    display: grid;
-    grid-template-columns: 1fr 320px;
+    display: flex;
     align-items: center;
-    gap: 40px;
+    justify-content: center;
     width: 100%;
     max-width: 1100px;
   }
@@ -634,8 +635,15 @@
   }
 
   .featured-video-box {
-    width: 100%;
-    align-self: center;
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    width: 300px;
+    z-index: 99;
+    background: var(--navy-mid);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5);
   }
 
   .featured-label {
@@ -745,7 +753,7 @@
       grid-template-columns: 1fr;
     }
     .featured-video-box {
-      width: 100%;
+      display: none;
     }
   }
 
@@ -1286,6 +1294,14 @@
         <div class="social-btn-desc">Community chat, events &amp; build competitions</div>
         <span class="social-btn-join">Join Server</span>
       </a>
+      <a class="social-btn youtube" href="https://www.youtube.com/@Alistair_Lair" target="_blank">
+        <div class="social-btn-icon-row">
+          <span>▶</span>
+          <span class="social-btn-name">YouTube</span>
+        </div>
+        <div class="social-btn-desc">Videos, build showcases &amp; challenge recaps</div>
+        <span class="social-btn-join">Subscribe</span>
+      </a>
     </div>
   </div>
   <!-- end .hero-main -->
@@ -1299,14 +1315,6 @@
         <span>No video set</span>
       </div>
     </div>
-    <a class="social-btn youtube" href="https://www.youtube.com/@Alistair_Lair" target="_blank" style="margin-top:10px;display:flex;">
-      <div class="social-btn-icon-row">
-        <span>▶</span>
-        <span class="social-btn-name">YouTube</span>
-      </div>
-      <div class="social-btn-desc">Videos, build showcases &amp; challenge recaps</div>
-      <span class="social-btn-join">Subscribe</span>
-    </a>
   </div>
 
   </div><!-- end .hero-layout -->
