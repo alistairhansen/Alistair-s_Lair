@@ -1193,14 +1193,7 @@
   <div class="section-wrap">
     <div class="section-title">Build Challenges</div>
     <p class="section-sub">Click a challenge to see the video, winner, and description</p>
-    <div class="sheet-url-tip">
-      <strong>How to connect your Google Sheet:</strong> Publish your sheet to the web (File → Share → Publish to web → CSV), then paste the URL below.<br>
-      Columns expected: <code>Name</code>, <code>Date</code>, <code>Winner</code>, <code>Description</code>, <code>VideoID</code>
-    </div>
-    <div class="workshop-header">
-      <input type="text" id="challenges-sheet-url" placeholder="Paste your Google Sheet CSV URL here…">
-      <button class="workshop-btn" onclick="loadChallengesSheet()">Load Challenges</button>
-    </div>
+    <input type="hidden" id="challenges-sheet-url">
     <div class="challenges-list" id="challenges-list"></div>
   </div>
 </div>
