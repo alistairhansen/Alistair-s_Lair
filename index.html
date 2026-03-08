@@ -1528,7 +1528,7 @@ async function loadChallengesSheet() {
     const winnerIdx   = headers.findIndex(h => h.includes('winner'));
     const descIdx     = headers.findIndex(h => h.includes('desc'));
     const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
-    const subtitleIdx = headers.findIndex(h => h.includes('subtitle') || h.includes('sub'));
+    const subtitleIdx = headers.findIndex(h => h === 'subtitle');
 
     challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
       const winner = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
