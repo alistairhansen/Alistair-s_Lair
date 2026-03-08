@@ -1038,7 +1038,7 @@
 
   .builds-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
   }
 
@@ -1048,6 +1048,9 @@
     border-radius: 12px;
     overflow: hidden;
     transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    aspect-ratio: 4/3;
+    cursor: pointer;
   }
 
   .build-card:hover {
@@ -1056,8 +1059,8 @@
   }
 
   .build-img {
-    height: 160px;
-    overflow: hidden;
+    position: absolute;
+    inset: 0;
     background: var(--navy-light);
     display: flex;
     align-items: center;
@@ -1070,67 +1073,72 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
   }
 
-  .build-body {
-    padding: 16px;
+  .build-title-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 14px;
+    background: linear-gradient(to top, rgba(13,27,46,0.95), transparent);
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--cream);
+    transition: opacity 0.25s;
   }
 
-  .build-body h3 {
-    font-size: 0.95rem;
+  .build-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(13,27,46,0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .build-card:hover .build-overlay { opacity: 1; }
+  .build-card:hover .build-title-bar { opacity: 0; }
+
+  .build-overlay h3 {
+    font-size: 1rem;
     font-weight: 800;
     color: var(--cream);
-    margin-bottom: 6px;
+    margin: 0;
   }
 
-  .build-body p {
+  .build-overlay p {
     font-size: 0.82rem;
     color: var(--cream-dim);
     line-height: 1.5;
-    margin-bottom: 10px;
-  }
-
-  .progress-bar-wrap {
-    background: rgba(255,255,255,0.08);
-    border-radius: 99px;
-    height: 8px;
-    margin-bottom: 4px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    border-radius: 99px;
-    background: linear-gradient(to right, var(--orange), var(--gold));
-  }
-
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    color: var(--cream-dim);
+    margin: 0;
   }
 
   .build-link {
     display: inline-block;
-    margin-top: 12px;
-    background: rgba(245,131,31,0.12);
-    color: var(--orange);
-    border: 1px solid rgba(245,131,31,0.4);
-    text-decoration: none;
-    font-weight: 800;
-    font-size: 0.78rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-
-  .build-link:hover {
     background: var(--orange);
     color: var(--navy);
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: filter 0.2s;
+    margin-top: 4px;
   }
+
+  .build-link:hover { filter: brightness(1.15); }
+
+
 
   .sheet-url-tip {
     background: rgba(245,131,31,0.08);
@@ -1476,17 +1484,9 @@
 <div id="page-workshop" class="page">
   <div class="section-wrap">
     <div class="section-title">Steam Workshop Builds</div>
-    <p class="section-sub">Current builds — linked live from Google Sheets</p>
-    <div class="sheet-url-tip">
-      <strong>How to connect your Google Sheet:</strong> Publish your sheet to the web (File → Share → Publish to web → CSV), then paste the URL below.
-      Columns expected: <code>Name</code>, <code>Description</code>, <code>Progress</code> (0–100), <code>Image URL</code>, <code>Workshop URL</code>
-    </div>
-    <div class="workshop-header">
-      <input type="text" id="sheet-url" placeholder="Paste your Google Sheet CSV URL here…">
-      <button class="workshop-btn" onclick="loadSheet()">Load Builds</button>
-    </div>
+    <p class="section-sub">Hover over a build to see its description and open it on Steam Workshop</p>
     <div id="builds-container">
-      <div class="empty-msg">Paste your Google Sheet CSV URL above and press Load Builds.</div>
+      <div class="empty-msg">Loading builds…</div>
     </div>
   </div>
 </div>
@@ -1730,9 +1730,11 @@ async function loadPartnersSheet() {
 }
 
 async function loadSheet() {
-  const url = document.getElementById('sheet-url').value.trim();
+  const hardcodedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=279288636&output=csv';
+  const inputEl = document.getElementById('sheet-url');
+  const url = (inputEl && inputEl.value.trim()) ? inputEl.value.trim() : hardcodedUrl;
   const container = document.getElementById('builds-container');
-  if (!url) { container.innerHTML = '<div class="empty-msg">Please enter a valid Google Sheet CSV URL.</div>'; return; }
+  if (!url) { container.innerHTML = '<div class="empty-msg">No sheet URL found.</div>'; return; }
   container.innerHTML = `<div class="loading-msg"><div class="spinner"></div><br>Loading builds…</div>`;
   try {
     const csv = await fetchCSV(url);
@@ -1741,26 +1743,23 @@ async function loadSheet() {
     const headers = rows[0].map(h => h.toLowerCase().trim());
     const nameIdx = headers.findIndex(h => h.includes('name'));
     const descIdx = headers.findIndex(h => h.includes('desc'));
-    const progIdx = headers.findIndex(h => h.includes('progress'));
     const imgIdx  = headers.findIndex(h => h.includes('image') || h.includes('img') || h.includes('photo'));
     const urlIdx  = headers.findIndex(h => h.includes('url') || h.includes('link') || h.includes('workshop'));
     const builds  = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
-      name:     nameIdx >= 0 ? r[nameIdx] : 'Untitled',
-      desc:     descIdx >= 0 ? r[descIdx] : '',
-      progress: progIdx >= 0 ? Math.min(100, Math.max(0, parseInt(r[progIdx]) || 0)) : 0,
-      image:    imgIdx  >= 0 ? r[imgIdx]  : '',
-      url:      urlIdx  >= 0 ? r[urlIdx]  : '',
+      name:  nameIdx >= 0 ? r[nameIdx].trim() : 'Untitled',
+      desc:  descIdx >= 0 ? r[descIdx].trim() : '',
+      image: imgIdx  >= 0 ? r[imgIdx].trim()  : '',
+      url:   urlIdx  >= 0 ? r[urlIdx].trim()  : '',
     }));
     if (!builds.length) { container.innerHTML = '<div class="empty-msg">No builds found.</div>'; return; }
     container.innerHTML = `<div class="builds-grid">${builds.map(b => `
       <div class="build-card">
         <div class="build-img">${b.image ? `<img src="${b.image}" alt="${b.name}" onerror="this.parentElement.innerHTML='🔧'">` : '🔧'}</div>
-        <div class="build-body">
+        <div class="build-title-bar">${b.name}</div>
+        <div class="build-overlay">
           <h3>${b.name}</h3>
           ${b.desc ? `<p>${b.desc}</p>` : ''}
-          <div class="progress-bar-wrap"><div class="progress-bar" style="width:${b.progress}%"></div></div>
-          <div class="progress-label"><span>Progress</span><span>${b.progress}%</span></div>
-          ${b.url ? `<a class="build-link" href="${b.url}" target="_blank">View on Workshop</a>` : ''}
+          ${b.url ? `<a class="build-link" href="${b.url}" target="_blank" onclick="event.stopPropagation()">View on Workshop →</a>` : ''}
         </div>
       </div>`).join('')}</div>`;
   } catch(e) {
@@ -1825,6 +1824,9 @@ renderAnnouncements('home-announcements', 3);
 renderAnnouncements('all-announcements');
 renderGallery();
 renderPartners();
+
+// Auto-load workshop builds from hardcoded sheet URL
+(function() { loadSheet(); })();
 
 // Auto-load challenges from hardcoded sheet URL
 (function() {
