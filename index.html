@@ -1551,6 +1551,63 @@
     flex-shrink: 0;
   }
 
+
+  /* ── TIMERS ─────────────────────────────────────────────────────────────── */
+  .challenge-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(13,27,46,0.7);
+    border: 1px solid rgba(245,131,31,0.35);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+    color: var(--orange);
+    margin: 10px 0 14px;
+  }
+  .challenge-timer .timer-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    display: block;
+    line-height: 1;
+  }
+  .challenge-timer .timer-segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 38px;
+  }
+  .challenge-timer .timer-colon {
+    padding-bottom: 14px;
+    opacity: 0.5;
+    font-size: 1.2rem;
+  }
+  .challenge-timer.timer-urgent {
+    border-color: #ef4444;
+    color: #ef4444;
+    animation: timer-urgent-pulse 1s ease-in-out infinite;
+  }
+  @keyframes timer-urgent-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+    50%       { box-shadow: 0 0 10px 4px rgba(239,68,68,0.15); }
+  }
+  .vote-countdown {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #ef4444;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .vote-countdown.urgent { animation: timer-urgent-pulse 1s ease-in-out infinite; }
+
 </style>
 </head>
 <body>
@@ -1927,12 +1984,113 @@ async function resetVotesIfNeeded() {
     localStorage.setItem(storageKey, isNowOpen ? 'yes' : 'no');
   }
 }
+
+// ── COUNTDOWN TIMERS ─────────────────────────────────────────────────────────
+let _timerIntervals = {}; // key -> intervalId
+
+function clearAllTimers() {
+  Object.values(_timerIntervals).forEach(id => clearInterval(id));
+  _timerIntervals = {};
+}
+
+function parseDeadline(str) {
+  if (!str) return null;
+  // Accepts: "2026-03-15 18:00", "15/03/2026 18:00", "March 15 2026 18:00", ISO etc.
+  const d = new Date(str);
+  if (!isNaN(d)) return d;
+  // Try DD/MM/YYYY HH:MM
+  const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0));
+  return null;
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return { str: 'ENDED', days: 0, hours: 0, mins: 0, secs: 0, ended: true };
+  const totalSecs = Math.floor(ms / 1000);
+  const days  = Math.floor(totalSecs / 86400);
+  const hours = Math.floor((totalSecs % 86400) / 3600);
+  const mins  = Math.floor((totalSecs % 3600) / 60);
+  const secs  = totalSecs % 60;
+  const pad   = n => String(n).padStart(2, '0');
+  const str   = days > 0
+    ? `${days}d ${pad(hours)}h ${pad(mins)}m`
+    : `${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+  return { str, days, hours, mins, secs, ended: false };
+}
+
+// Big block timer for challenge detail page
+function startDetailTimer(elementId, deadlineStr, labelText) {
+  const deadline = parseDeadline(deadlineStr);
+  if (!deadline) return;
+  if (_timerIntervals[elementId]) clearInterval(_timerIntervals[elementId]);
+
+  function tick() {
+    const el = document.getElementById(elementId);
+    if (!el) { clearInterval(_timerIntervals[elementId]); return; }
+    const ms  = deadline - Date.now();
+    const fmt = formatCountdown(ms);
+    const urgent = !fmt.ended && ms < 3600000; // < 1 hour
+    if (fmt.ended) {
+      el.innerHTML = '<span style="color:#ef4444;font-size:1rem;font-weight:800;letter-spacing:1px;">TIME\'S UP</span>';
+      clearInterval(_timerIntervals[elementId]);
+      return;
+    }
+    const pad = n => String(n).padStart(2, '0');
+    const segs = fmt.days > 0
+      ? [
+          { val: fmt.days,  lbl: 'Days' },
+          { val: fmt.hours, lbl: 'Hours' },
+          { val: fmt.mins,  lbl: 'Mins' },
+        ]
+      : [
+          { val: fmt.hours, lbl: 'Hours' },
+          { val: fmt.mins,  lbl: 'Mins' },
+          { val: fmt.secs,  lbl: 'Secs' },
+        ];
+    el.className = 'challenge-timer' + (urgent ? ' timer-urgent' : '');
+    el.innerHTML = '<div style="display:flex;flex-direction:column;margin-right:10px;">'
+      + '<span style="font-family:\'Nunito\',sans-serif;font-size:0.68rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--cream-dim);">' + labelText + '</span>'
+      + '<span style="font-family:\'Nunito\',sans-serif;font-size:0.68rem;color:var(--cream-dim);opacity:0.6;">⏱</span>'
+      + '</div>'
+      + segs.map((s,i) =>
+          '<div class="timer-segment"><span>' + pad(s.val) + '</span><span class="timer-label">' + s.lbl + '</span></div>'
+          + (i < segs.length-1 ? '<span class="timer-colon">:</span>' : '')
+        ).join('');
+  }
+  tick();
+  _timerIntervals[elementId] = setInterval(tick, 1000);
+}
+
+// Inline small countdown for challenge list rows
+function startInlineTimer(elementId, deadlineStr) {
+  const deadline = parseDeadline(deadlineStr);
+  if (!deadline) return;
+  if (_timerIntervals[elementId]) clearInterval(_timerIntervals[elementId]);
+
+  function tick() {
+    const el = document.getElementById(elementId);
+    if (!el) { clearInterval(_timerIntervals[elementId]); return; }
+    const ms  = deadline - Date.now();
+    const fmt = formatCountdown(ms);
+    if (fmt.ended) {
+      el.textContent = 'Voting ended';
+      el.className = 'vote-countdown';
+      clearInterval(_timerIntervals[elementId]);
+      return;
+    }
+    el.textContent = fmt.str + ' left';
+    el.className = 'vote-countdown' + (ms < 3600000 ? ' urgent' : '');
+  }
+  tick();
+  _timerIntervals[elementId] = setInterval(tick, 1000);
+}
 function updateNavDots() {
   const hasVoting = challenges.some(c => c.voting === 'yes' || c.voting === 'true');
   const dotVoting = document.getElementById('nav-dot-voting');
   if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
 }
 function renderChallengesList() {
+  clearAllTimers();
   document.getElementById('challenges-list').innerHTML = challenges.map((c,i) => {
     const isVoting = c.voting === 'yes' || c.voting === 'true';
     const isLive   = c.live   === 'yes' || c.live   === 'true';
@@ -1940,9 +2098,18 @@ function renderChallengesList() {
     // Right side: voting tag if voting open, winner only if not live/voting, else empty
     let rightContent = '';
     if (isVoting) {
-      rightContent = myVote
-        ? '<span class="voted-tag" title="You voted for ' + myVote + '">&#x2705; ' + myVote + '</span>'
-        : '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>';
+      if (myVote) {
+        rightContent = '<span class="voted-tag" title="You voted for ' + myVote + '">&#x2705; ' + myVote + '</span>';
+      } else {
+        const timerId = 'vtimer-' + c.id;
+        const countdown = c.voteEnd
+          ? '<span id="' + timerId + '" class="vote-countdown"></span>'
+          : '';
+        rightContent = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">'
+          + '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>'
+          + countdown
+          + '</div>';
+      }
     } else if (!isLive && c.winner) {
       rightContent = '<span class="challenge-winner">' + c.winner + '</span>';
     }
@@ -1961,6 +2128,13 @@ function renderChallengesList() {
       + '</div>';
     return '<div class="challenge-item-wrap">' + liveDot + card + '</div>';
   }).join('');
+  // Start inline vote countdown timers
+  challenges.forEach(c => {
+    const isVoting = c.voting === 'yes' || c.voting === 'true';
+    if (isVoting && c.voteEnd && !getMyVote(c.id)) {
+      startInlineTimer('vtimer-' + c.id, c.voteEnd);
+    }
+  });
 }
 
 function showChallenge(index) {
@@ -1975,9 +2149,12 @@ function showChallenge(index) {
     ? `<div class="winner-badge">🏆 Winner: ${c.winner.replace('🏆 ','')}</div>` : '';
   let statusHtml = '';
   if (isLive) {
+    const liveTimerHtml = c.liveEnd
+      ? `<div id="live-timer-${c.id}" class="challenge-timer" style="margin-top:12px;"></div>`
+      : '';
     statusHtml += `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);color:#22c55e;font-size:0.82rem;font-weight:800;padding:5px 14px;border-radius:6px;margin-bottom:10px;margin-right:8px;letter-spacing:0.5px;">
       <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;display:inline-block;"></span> LIVE NOW
-    </div>`;
+    </div>${liveTimerHtml}`;
   }
   if (isVoting) {
     const voteLabel = myVote ? `✅ You voted: ${myVote}` : '🗳️ Voting is Open — Cast Your Vote';
@@ -1995,6 +2172,7 @@ function showChallenge(index) {
       <p class="challenge-desc">${c.description}</p>
     </div>`;
   showPage('challenge-detail');
+  if (isLive && c.liveEnd) startDetailTimer('live-timer-' + c.id, c.liveEnd, 'Time Left');
 }
 
 function renderGallery() {
@@ -2204,6 +2382,8 @@ async function loadChallengesSheet() {
     const subtitleIdx = headers.findIndex(h => h === 'subtitle');
     const votingIdx   = headers.findIndex(h => h.includes('voting') || h === 'vote');
     const liveIdx     = headers.findIndex(h => h === 'live' || h.includes('live'));
+    const liveEndIdx  = headers.findIndex(h => h === 'live_end' || h === 'liveend' || h === 'live end');
+    const voteEndIdx  = headers.findIndex(h => h === 'vote_end' || h === 'voteend' || h === 'vote end' || h === 'voting_end');
 
     challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
       const winner    = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
@@ -2219,6 +2399,8 @@ async function loadChallengesSheet() {
         subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
         voting:      votingVal,
         live:        liveVal,
+        liveEnd:     liveEndIdx  >= 0 ? r[liveEndIdx].trim()  : '',
+        voteEnd:     voteEndIdx  >= 0 ? r[voteEndIdx].trim()  : '',
       };
     });
     if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
@@ -2462,8 +2644,11 @@ async function submitVote(challengeId, buildName, btn) {
   btn.textContent = 'Submitting\u2026';
   const c = challenges.find(x => x.id === challengeId);
   await castVote(challengeId, buildName, c ? c.name : null);
+  // Re-render everything FIRST so voted state is visible immediately on return
   renderChallengesList();
   renderVotingPage();
+  // Small delay so the user sees confirmation before jumping back
+  await new Promise(r => setTimeout(r, 600));
   showPage(_voteReturnPage);
 }
 
