@@ -1941,7 +1941,7 @@ function renderChallengesList() {
     let rightContent = '';
     if (isVoting) {
       rightContent = myVote
-        ? '<span class="voted-tag">&#x2705; Voted</span>'
+        ? '<span class="voted-tag" title="You voted for ' + myVote + '">&#x2705; ' + myVote + '</span>'
         : '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>';
     } else if (!isLive && c.winner) {
       rightContent = '<span class="challenge-winner">' + c.winner + '</span>';
@@ -2367,7 +2367,7 @@ function renderVotingPage() {
   list.innerHTML = active.map(c => {
     const myVote = getMyVote(c.id);
     const rightSide = myVote
-      ? '<span class="voted-tag">&#x2705; Voted: ' + myVote + '</span>'
+      ? '<span class="voted-tag">&#x2705; ' + myVote + '</span>'
       : '<button class="vote-btn" onclick="openVotePage(' + c.id + ')">&#x1F5F3;&#xFE0F; Go Vote</button>';
     return '<div class="voting-challenge-card">'
       + '<div class="voting-challenge-left">'
@@ -2387,6 +2387,15 @@ async function openVotePage(challengeId, returnPage) {
   if (returnPage) _voteReturnPage = returnPage;
   const c = challenges.find(x => x.id === challengeId);
   if (!c) return;
+
+  // Show loading state immediately
+  document.getElementById('vote-detail-content').innerHTML =
+    '<div class="loading-msg"><div class="spinner"></div><br>Loading builds…</div>';
+  showPage('vote');
+
+  // If builds haven't loaded yet (or failed on init), try again now
+  if (!votingBuilds.length) await loadVotingBuilds();
+
   const builds = votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase());
   const myVote = getMyVote(challengeId);
   const tallies = await fetchTallies(challengeId, c.name);
