@@ -2156,8 +2156,11 @@ function showChallenge(index) {
     </div>${liveTimerHtml}`;
   }
   if (isVoting) {
-    const voteLabel = '🗳️ Voting is Open — Cast Your Vote';
-    statusHtml += `<button class="vote-btn" onclick="openVotePage(${c.id}, 'challenge-detail')" style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">${voteLabel}</button>`;
+    if (myVote) {
+      statusHtml += `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(232,184,75,0.1);border:1px solid var(--gold);color:var(--gold);font-size:0.88rem;font-weight:800;padding:10px 22px;border-radius:8px;">✅ Already Voted</div>`;
+    } else {
+      statusHtml += `<button class="vote-btn" onclick="openVotePage(${c.id}, 'challenge-detail')" style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">🗳️ Voting is Open — Cast Your Vote</button>`;
+    }
   }
   document.getElementById('challenge-detail-content').innerHTML = `
     <div class="challenge-video-wrap">${videoHtml}</div>
