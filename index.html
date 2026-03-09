@@ -477,8 +477,16 @@
   /* ── PARTNERS FULL PAGE ──────────────── */
   .partners-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+  }
+
+  @media (max-width: 860px) {
+    .partners-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 540px) {
+    .partners-grid { grid-template-columns: 1fr; }
   }
 
   .partner-card {
@@ -1486,7 +1494,7 @@
 <div id="page-partners" class="page">
   <div class="section-wrap">
     <div class="section-title">Discord Partners</div>
-    <p class="section-sub">Communities and servers we're partnered with — linked live from Google Sheets</p>
+
     <div class="sheet-url-tip" style="display:none;">
       <strong>How to connect your Google Sheet:</strong> Publish your sheet to the web (File → Share → Publish to web → CSV), then paste the URL below.
       Columns expected: <code>Name</code>, <code>Description</code>, <code>Logo URL</code>, <code>Link</code>
