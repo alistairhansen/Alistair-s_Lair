@@ -1487,6 +1487,52 @@
   .setup-notice .setup-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
   .setup-notice code { background: var(--navy-light); padding: 1px 5px; border-radius: 3px; color: var(--orange-light); font-size: 0.78rem; }
 
+
+  /* Live / voting indicators on challenge rows */
+  .challenge-live-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+    flex-shrink: 0;
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+  @keyframes live-pulse {
+    0%, 100% { box-shadow: 0 0 4px #22c55e; }
+    50%       { box-shadow: 0 0 10px #22c55e, 0 0 18px rgba(34,197,94,0.4); }
+  }
+  .challenge-voting-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .voted-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(232,184,75,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
 </style>
 </head>
 <body>
@@ -1501,11 +1547,14 @@
     <li><a href="#" class="active" id="nav-home" onclick="showPage('home')">Home</a></li>
     <li><a href="#" id="nav-about" onclick="showPage('about')">About</a></li>
     <li><a href="#" id="nav-announcements" onclick="showPage('announcements')">News &amp; Events</a></li>
-    <li><a href="#" id="nav-challenges" onclick="showPage('challenges')">Challenges</a></li>
+    <li style="position:relative;display:flex;align-items:center;gap:0;">
+      <a href="#" id="nav-challenges" onclick="showPage('challenges')">Challenges</a>
+      <span id="nav-dot-live"   style="display:none;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:3px;box-shadow:0 0 5px #22c55e;flex-shrink:0;"></span>
+      <span id="nav-dot-voting" style="display:none;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-left:3px;box-shadow:0 0 5px #ef4444;flex-shrink:0;"></span>
+    </li>
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery')">Gallery</a></li>
     <li><a href="#" id="nav-partners" onclick="showPage('partners')">Partners</a></li>
     <li><a href="#" id="nav-workshop" onclick="showPage('workshop')">Workshop</a></li>
-    <li><a href="#" id="nav-voting" onclick="showPage('voting')">&#x1F5F3;&#xFE0F; Voting</a></li>
   </ul>
 </nav>
 
@@ -1838,20 +1887,33 @@ function renderAnnouncements(id, limit) {
     </div>`).join('');
 }
 
+
+function updateNavDots() {
+  const hasLive   = challenges.some(c => c.live   === 'yes' || c.live   === 'true');
+  const hasVoting = challenges.some(c => c.voting === 'yes' || c.voting === 'true');
+  const dotLive   = document.getElementById('nav-dot-live');
+  const dotVoting = document.getElementById('nav-dot-voting');
+  if (dotLive)   dotLive.style.display   = hasLive   ? 'inline-block' : 'none';
+  if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
+}
 function renderChallengesList() {
   document.getElementById('challenges-list').innerHTML = challenges.map((c,i) => {
     const isVoting = c.voting === 'yes' || c.voting === 'true';
-    const myVote = getMyVote(c.id);
+    const isLive   = c.live   === 'yes' || c.live   === 'true';
+    const myVote   = getMyVote(c.id);
+    // Right side: voting tag (red) if open, else winner
     const rightSide = isVoting
       ? (myVote
           ? '<span class="voted-tag">&#x2705; Voted</span>'
-          : '<button class="vote-btn" onclick="event.stopPropagation();openVotePage(' + c.id + ')">&#x1F5F3;&#xFE0F; Vote Now</button>')
+          : '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>')
       : '<span class="challenge-winner">' + c.winner + '</span>';
-    const badge = isVoting ? ' <span class="voting-badge">&#x1F5F3;&#xFE0F; Voting Open</span>' : '';
-    return '<div class="challenge-row" onclick="showChallenge(' + i + ')">'
+    // Left indicator dot (green) if live
+    const liveDot = isLive ? '<span class="challenge-live-dot"></span>' : '';
+    return '<div class="challenge-row" onclick="showChallenge(' + i + ')" style="' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
+      + liveDot
       + '<div class="challenge-row-left">'
       + '<div class="challenge-num">#' + c.id + '</div>'
-      + '<div><h3>' + c.name + badge + '</h3>'
+      + '<div><h3>' + c.name + '</h3>'
       + (c.subtitle ? '<p class="challenge-subtitle">' + c.subtitle + '</p>' : '')
       + '<p>📅 ' + c.date + '</p></div>'
       + '</div>'
@@ -2082,10 +2144,12 @@ async function loadChallengesSheet() {
     const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
     const subtitleIdx = headers.findIndex(h => h === 'subtitle');
     const votingIdx   = headers.findIndex(h => h.includes('voting') || h === 'vote');
+    const liveIdx     = headers.findIndex(h => h === 'live' || h.includes('live'));
 
     challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
-      const winner = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
+      const winner    = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
       const votingVal = votingIdx >= 0 ? r[votingIdx].trim().toLowerCase() : '';
+      const liveVal   = liveIdx   >= 0 ? r[liveIdx].trim().toLowerCase()   : '';
       return {
         id: i + 1,
         name:        nameIdx     >= 0 ? r[nameIdx].trim()     : 'Untitled Challenge',
@@ -2095,12 +2159,13 @@ async function loadChallengesSheet() {
         videoId:     videoIdx    >= 0 ? r[videoIdx].trim()    : '',
         subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
         voting:      votingVal,
+        live:        liveVal,
       };
     });
-
     if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
     renderChallengesList();
     renderVotingPage();
+    updateNavDots();
     localStorage.setItem('challenges-sheet-url', url);
   } catch(e) {
     list.innerHTML = `<div class="empty-msg">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
@@ -2363,7 +2428,7 @@ renderPartners();
   const hardcodedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=8812323&output=csv';
   const input = document.getElementById('challenges-sheet-url');
   if (input) { input.value = hardcodedUrl; loadChallengesSheet(); }
-  else { renderChallengesList(); }
+  else { renderChallengesList(); renderVotingPage(); updateNavDots(); }
 })();
 
 // Auto-load partners from hardcoded sheet URL
