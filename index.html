@@ -2156,11 +2156,8 @@ function showChallenge(index) {
     </div>${liveTimerHtml}`;
   }
   if (isVoting) {
-    const voteLabel = myVote ? `✅ You voted: ${myVote}` : '🗳️ Voting is Open — Cast Your Vote';
-    const btnStyle = myVote
-      ? `style="background:rgba(232,184,75,0.15);border:1px solid var(--gold);color:var(--gold);cursor:default;"`
-      : `onclick="openVotePage(${c.id}, 'challenge-detail')"`;
-    statusHtml += `<button class="vote-btn" ${btnStyle} style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">${voteLabel}</button>`;
+    const voteLabel = '🗳️ Voting is Open — Cast Your Vote';
+    statusHtml += `<button class="vote-btn" onclick="openVotePage(${c.id}, 'challenge-detail')" style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">${voteLabel}</button>`;
   }
   document.getElementById('challenge-detail-content').innerHTML = `
     <div class="challenge-video-wrap">${videoHtml}</div>
@@ -2647,8 +2644,7 @@ async function submitVote(challengeId, buildName, btn) {
   renderChallengesList();
   renderVotingPage();
   // Small delay so the user sees confirmation before jumping back
-  await new Promise(r => setTimeout(r, 600));
-  showPage(_voteReturnPage);
+  showPage('challenges');
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
