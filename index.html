@@ -1308,6 +1308,185 @@
     .stat-item { min-width: 120px; }
     .social-btn { min-width: 140px; }
   }
+
+  /* ── VOTING ────────────────────────────────────────────────────────────── */
+  .voting-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #f5831f, #e8b84b);
+    color: var(--navy);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,131,31,0.5); }
+    50%       { box-shadow: 0 0 0 6px rgba(245,131,31,0); }
+  }
+  .vote-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--orange);
+    color: var(--navy);
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .vote-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .voted-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(232,184,75,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .vote-builds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 8px;
+  }
+  .vote-build-card {
+    background: var(--navy-mid);
+    border: 2px solid rgba(245,131,31,0.3);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .vote-build-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .vote-build-card.voted-card {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(232,184,75,0.25);
+  }
+  .vote-build-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--navy-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(245,131,31,0.3);
+    overflow: hidden;
+  }
+  .vote-build-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vote-build-body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .vote-build-body h3 { font-size: 1rem; font-weight: 800; color: var(--cream); }
+  .vote-build-body p  { font-size: 0.83rem; color: var(--cream-dim); line-height: 1.55; flex: 1; }
+  .vote-build-footer  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .cast-vote-btn {
+    flex: 1;
+    min-width: 100px;
+    background: var(--orange);
+    color: var(--navy);
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: filter 0.2s;
+    text-align: center;
+  }
+  .cast-vote-btn:hover { filter: brightness(1.12); }
+  .cast-vote-btn:disabled {
+    background: rgba(245,131,31,0.2);
+    color: var(--cream-dim);
+    cursor: not-allowed;
+    filter: none;
+  }
+  .cast-vote-btn.my-vote { background: linear-gradient(135deg, #e8b84b, #f5831f); color: var(--navy); }
+  .workshop-mini-link {
+    font-size: 0.75rem; font-weight: 700; color: var(--orange);
+    text-decoration: none; opacity: 0.8; white-space: nowrap; transition: opacity 0.2s;
+  }
+  .workshop-mini-link:hover { opacity: 1; }
+  .vote-result-wrap { margin-top: 6px; }
+  .vote-result-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.72rem; font-weight: 700; color: var(--cream-dim); margin-bottom: 4px;
+  }
+  .vote-result-bar-bg { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .vote-result-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--orange), var(--gold));
+    border-radius: 3px; transition: width 0.6s ease;
+  }
+  .voting-challenge-card {
+    background: var(--navy-mid);
+    border: 1px solid rgba(245,131,31,0.25);
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    transition: border-color 0.2s;
+  }
+  .voting-challenge-card:hover { border-color: var(--orange); }
+  .voting-challenge-left { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .voting-challenge-left h3 {
+    font-size: 1.1rem; font-weight: 800; color: var(--cream);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .voting-challenge-left p { font-size: 0.87rem; color: var(--cream-dim); line-height: 1.55; max-width: 520px; }
+  .voting-empty { text-align: center; padding: 60px 20px; color: var(--cream-dim); }
+  .voting-empty .big-icon { font-size: 3rem; margin-bottom: 12px; }
+  .voting-empty h3 { font-family: 'Bangers', cursive; font-size: 1.6rem; color: var(--cream); margin-bottom: 8px; letter-spacing: 2px; }
+  .setup-notice {
+    background: rgba(245,131,31,0.07);
+    border: 1px solid rgba(245,131,31,0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.82rem;
+    color: var(--cream-dim);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .setup-notice .setup-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .setup-notice code { background: var(--navy-light); padding: 1px 5px; border-radius: 3px; color: var(--orange-light); font-size: 0.78rem; }
+
 </style>
 </head>
 <body>
@@ -1326,6 +1505,7 @@
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery')">Gallery</a></li>
     <li><a href="#" id="nav-partners" onclick="showPage('partners')">Partners</a></li>
     <li><a href="#" id="nav-workshop" onclick="showPage('workshop')">Workshop</a></li>
+    <li><a href="#" id="nav-voting" onclick="showPage('voting')">&#x1F5F3;&#xFE0F; Voting</a></li>
   </ul>
 </nav>
 
@@ -1412,7 +1592,7 @@
 
   <!-- Partners preview -->
   <div class="section-wrap" style="padding-top:0;">
-    <div class="section-title">Partners</div>
+    <div class="section-title">Our Latest Partners</div>
     <p class="section-sub">Communities we've partnered with</p>
     <div class="home-partners-strip" id="home-partners-strip">
       <!-- Filled by JS -->
@@ -1561,6 +1741,33 @@
   </div>
 </div>
 
+
+<!-- VOTING PAGE -->
+<div id="page-voting" class="page">
+  <div class="section-wrap">
+    <div class="section-title">&#x1F5F3;&#xFE0F; Active Votes</div>
+    <p class="section-sub">Vote for your favourite build in each open challenge</p>
+    <div id="voting-setup-notice" class="setup-notice" style="display:none;">
+      <span class="setup-icon">&#x2699;&#xFE0F;</span>
+      <div>
+        <strong>Community results not yet configured.</strong>
+        Votes are saved in each visitor's browser for now. To enable live community tallies,
+        deploy the Google Apps Script backend (see code comments) and set <code>VOTE_API_URL</code>.
+        Also set <code>VOTING_BUILDS_SHEET_URL</code> to your voting builds CSV.
+      </div>
+    </div>
+    <div id="voting-list" class="challenges-list"></div>
+  </div>
+</div>
+
+<!-- VOTE DETAIL PAGE -->
+<div id="page-vote" class="page">
+  <div class="section-wrap" style="max-width:1100px;">
+    <button class="back-btn" onclick="showPage('voting')">&#x2190; Back to Votes</button>
+    <div id="vote-detail-content"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- ── FOOTER ─────────────────────────── -->
@@ -1632,15 +1839,26 @@ function renderAnnouncements(id, limit) {
 }
 
 function renderChallengesList() {
-  document.getElementById('challenges-list').innerHTML = challenges.map((c,i) => `
-    <div class="challenge-row" onclick="showChallenge(${i})">
-      <div class="challenge-row-left">
-        <div class="challenge-num">#${c.id}</div>
-        <div><h3>${c.name}</h3>${c.subtitle ? `<p class="challenge-subtitle">${c.subtitle}</p>` : ''}<p>📅 ${c.date}</p></div>
-      </div>
-      <span class="challenge-winner">${c.winner}</span>
-      <span class="challenge-arrow">→</span>
-    </div>`).join('');
+  document.getElementById('challenges-list').innerHTML = challenges.map((c,i) => {
+    const isVoting = c.voting === 'yes' || c.voting === 'true';
+    const myVote = getMyVote(c.id);
+    const rightSide = isVoting
+      ? (myVote
+          ? '<span class="voted-tag">&#x2705; Voted</span>'
+          : '<button class="vote-btn" onclick="event.stopPropagation();openVotePage(' + c.id + ')">&#x1F5F3;&#xFE0F; Vote Now</button>')
+      : '<span class="challenge-winner">' + c.winner + '</span>';
+    const badge = isVoting ? ' <span class="voting-badge">&#x1F5F3;&#xFE0F; Voting Open</span>' : '';
+    return '<div class="challenge-row" onclick="showChallenge(' + i + ')">'
+      + '<div class="challenge-row-left">'
+      + '<div class="challenge-num">#' + c.id + '</div>'
+      + '<div><h3>' + c.name + badge + '</h3>'
+      + (c.subtitle ? '<p class="challenge-subtitle">' + c.subtitle + '</p>' : '')
+      + '<p>📅 ' + c.date + '</p></div>'
+      + '</div>'
+      + rightSide
+      + '<span class="challenge-arrow">→</span>'
+      + '</div>';
+  }).join('');
 }
 
 function showChallenge(index) {
@@ -1863,9 +2081,11 @@ async function loadChallengesSheet() {
     const descIdx     = headers.findIndex(h => h.includes('desc'));
     const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
     const subtitleIdx = headers.findIndex(h => h === 'subtitle');
+    const votingIdx   = headers.findIndex(h => h.includes('voting') || h === 'vote');
 
     challenges = rows.slice(1).filter(r => r.some(c => c.trim())).map((r, i) => {
       const winner = winnerIdx >= 0 ? r[winnerIdx].trim() : '';
+      const votingVal = votingIdx >= 0 ? r[votingIdx].trim().toLowerCase() : '';
       return {
         id: i + 1,
         name:        nameIdx     >= 0 ? r[nameIdx].trim()     : 'Untitled Challenge',
@@ -1874,11 +2094,13 @@ async function loadChallengesSheet() {
         description: descIdx     >= 0 ? r[descIdx].trim()     : '',
         videoId:     videoIdx    >= 0 ? r[videoIdx].trim()    : '',
         subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
+        voting:      votingVal,
       };
     });
 
     if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
     renderChallengesList();
+    renderVotingPage();
     localStorage.setItem('challenges-sheet-url', url);
   } catch(e) {
     list.innerHTML = `<div class="empty-msg">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
@@ -1897,6 +2119,234 @@ function parseCSV(text) {
     cells.push(cur.trim());
     return cells;
   });
+}
+
+
+// ── VOTING CONFIG ─────────────────────────────────────────────────────────────
+//
+// HOW TO SET UP VOTING:
+// 1. Add a 'voting' column to your challenges sheet (yes = open for voting, no/blank = closed)
+// 2. Create a voting builds sheet with columns: Challenge | Name | Image | Description | URL
+//    'Challenge' must match the challenge name exactly. Publish as CSV and paste URL below.
+// 3. For LIVE community vote tallies (optional but recommended):
+//    a) In your Google Spreadsheet go to Extensions > Apps Script
+//    b) Create a new script file (Code.gs) with this code:
+//
+//  ---- START APPS SCRIPT ----
+//  const VOTES_SHEET_NAME = 'Votes'; // create a sheet tab called Votes
+//
+//  function doGet(e) {
+//    const id = e.parameter.challenge_id;
+//    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(VOTES_SHEET_NAME);
+//    const data = sheet.getDataRange().getValues().slice(1);
+//    const tallies = {};
+//    data.forEach(r => { if (String(r[0]) === String(id)) tallies[r[1]] = (tallies[r[1]]||0)+1; });
+//    const out = ContentService.createTextOutput(JSON.stringify({tallies}));
+//    out.setMimeType(ContentService.MimeType.JSON);
+//    return out;
+//  }
+//
+//  function doPost(e) {
+//    const b = JSON.parse(e.postData.contents);
+//    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(VOTES_SHEET_NAME);
+//    const data = sheet.getDataRange().getValues().slice(1);
+//    if (data.some(r => String(r[0])===String(b.challenge_id) && r[2]===b.voter_id)) {
+//      const out = ContentService.createTextOutput(JSON.stringify({error:'already_voted'}));
+//      out.setMimeType(ContentService.MimeType.JSON); return out;
+//    }
+//    sheet.appendRow([b.challenge_id, b.build_name, b.voter_id, new Date()]);
+//    const out = ContentService.createTextOutput(JSON.stringify({success:true}));
+//    out.setMimeType(ContentService.MimeType.JSON);
+//    return out;
+//  }
+//  ---- END APPS SCRIPT ----
+//
+//    c) Click Deploy > New deployment > Web App > Anyone can access > Deploy
+//    d) Copy the Web App URL and paste it as VOTE_API_URL below.
+
+const VOTE_API_URL            = '';  // <- paste your Apps Script Web App URL here
+const VOTING_BUILDS_SHEET_URL = '';  // <- paste your voting builds CSV URL here
+
+// ── BROWSER FINGERPRINT ────────────────────────────────────────────────────
+function getBrowserFingerprint() {
+  try {
+    const cv = document.createElement('canvas');
+    cv.width = 220; cv.height = 30;
+    const ctx = cv.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '13px Arial';
+    ctx.fillStyle = '#f5831f';
+    ctx.fillText('alistairslair vote', 2, 2);
+    const raw = [
+      cv.toDataURL(),
+      navigator.userAgent,
+      screen.width + 'x' + screen.height + 'x' + (screen.colorDepth || 24),
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      navigator.language,
+      String(navigator.hardwareConcurrency || ''),
+    ].join('||');
+    let h = 5381;
+    for (let i = 0; i < raw.length; i++) { h = ((h << 5) + h) ^ raw.charCodeAt(i); h = h | 0; }
+    return 'v' + Math.abs(h).toString(36) + (Date.now() % 1000000).toString(36);
+  } catch(e) {
+    return 'v' + Math.random().toString(36).slice(2);
+  }
+}
+
+let _voterId = null;
+function getVoterId() {
+  if (_voterId) return _voterId;
+  _voterId = localStorage.getItem('al_voter_id');
+  if (!_voterId) { _voterId = getBrowserFingerprint(); localStorage.setItem('al_voter_id', _voterId); }
+  return _voterId;
+}
+
+function getMyVote(challengeId) { return localStorage.getItem('al_vote_' + challengeId); }
+function setMyVote(challengeId, buildName) { localStorage.setItem('al_vote_' + challengeId, buildName); }
+
+async function castVote(challengeId, buildName) {
+  setMyVote(challengeId, buildName);
+  if (!VOTE_API_URL) return { localOnly: true };
+  try {
+    const r = await fetch(VOTE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge_id: String(challengeId), build_name: buildName, voter_id: getVoterId() })
+    });
+    return await r.json();
+  } catch(e) { return { localOnly: true }; }
+}
+
+async function fetchTallies(challengeId) {
+  if (!VOTE_API_URL) return null;
+  try {
+    const r = await fetch(VOTE_API_URL + '?challenge_id=' + encodeURIComponent(challengeId));
+    const d = await r.json();
+    return d.tallies || null;
+  } catch(e) { return null; }
+}
+
+// ── VOTING BUILDS DATA ─────────────────────────────────────────────────────
+let votingBuilds = [];
+
+async function loadVotingBuilds() {
+  if (!VOTING_BUILDS_SHEET_URL) return;
+  try {
+    const csv = await fetchCSV(VOTING_BUILDS_SHEET_URL);
+    const rows = parseCSV(csv);
+    if (rows.length < 2) return;
+    const h = rows[0].map(x => x.toLowerCase().trim());
+    const cIdx = h.findIndex(x => x.includes('challenge'));
+    const nIdx = h.findIndex(x => x.includes('name'));
+    const iIdx = h.findIndex(x => x.includes('image') || x.includes('img') || x.includes('photo'));
+    const dIdx = h.findIndex(x => x.includes('desc'));
+    const uIdx = h.findIndex(x => x.includes('url') || x.includes('workshop') || x.includes('link'));
+    votingBuilds = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
+      challenge:   cIdx >= 0 ? r[cIdx].trim() : '',
+      name:        nIdx >= 0 ? r[nIdx].trim() : 'Untitled',
+      image:       iIdx >= 0 ? r[iIdx].trim() : '',
+      description: dIdx >= 0 ? r[dIdx].trim() : '',
+      url:         uIdx >= 0 ? r[uIdx].trim() : '',
+    }));
+  } catch(e) { console.warn('Could not load voting builds:', e); }
+}
+
+// ── RENDER VOTING PAGE ─────────────────────────────────────────────────────
+function renderVotingPage() {
+  const list = document.getElementById('voting-list');
+  if (!list) return;
+  const notice = document.getElementById('voting-setup-notice');
+  if (notice && (!VOTE_API_URL || !VOTING_BUILDS_SHEET_URL)) notice.style.display = 'flex';
+  const active = challenges.filter(c => c.voting === 'yes' || c.voting === 'true');
+  if (!active.length) {
+    list.innerHTML = '<div class="voting-empty"><div class="big-icon">&#x1F5F3;&#xFE0F;</div><h3>No Active Votes</h3><p>Check back when a challenge enters voting mode!</p></div>';
+    return;
+  }
+  list.innerHTML = active.map(c => {
+    const myVote = getMyVote(c.id);
+    const rightSide = myVote
+      ? '<span class="voted-tag">&#x2705; Voted: ' + myVote + '</span>'
+      : '<button class="vote-btn" onclick="openVotePage(' + c.id + ')">&#x1F5F3;&#xFE0F; Go Vote</button>';
+    return '<div class="voting-challenge-card">'
+      + '<div class="voting-challenge-left">'
+      + '<h3>' + c.name + ' <span class="voting-badge">&#x1F5F3;&#xFE0F; Voting Open</span></h3>'
+      + (c.subtitle ? '<p style="opacity:0.7;font-style:italic;font-size:0.8rem">' + c.subtitle + '</p>' : '')
+      + (c.description ? '<p>' + c.description.slice(0,130) + (c.description.length > 130 ? '&hellip;' : '') + '</p>' : '')
+      + '</div>'
+      + rightSide
+      + '</div>';
+  }).join('');
+}
+
+// ── OPEN VOTE DETAIL PAGE ──────────────────────────────────────────────────
+async function openVotePage(challengeId) {
+  const c = challenges.find(x => x.id === challengeId);
+  if (!c) return;
+  const builds = votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase());
+  const myVote = getMyVote(challengeId);
+  const tallies = await fetchTallies(challengeId);
+  const totalVotes = tallies ? Object.values(tallies).reduce((a, b) => a + b, 0) : 0;
+
+  let buildsHtml;
+  if (builds.length) {
+    buildsHtml = builds.map(b => {
+      const isMyVote = myVote === b.name;
+      const voteCount = tallies ? (tallies[b.name] || 0) : null;
+      const pct = (tallies && totalVotes > 0) ? Math.round((voteCount / totalVotes) * 100) : null;
+      const resultBar = (tallies && myVote)
+        ? '<div class="vote-result-wrap">'
+          + '<div class="vote-result-label"><span>' + voteCount + ' vote' + (voteCount !== 1 ? 's' : '') + '</span><span>' + pct + '%</span></div>'
+          + '<div class="vote-result-bar-bg"><div class="vote-result-bar-fill" style="width:' + pct + '%"></div></div>'
+          + '</div>'
+        : '';
+      const imgHtml = b.image
+        ? '<img src="' + b.image + '" alt="' + b.name + '" onerror="this.parentElement.innerHTML=\'&#x1F527;\'">'
+        : '&#x1F527;';
+      const workshopLink = b.url
+        ? '<a class="workshop-mini-link" href="' + b.url + '" target="_blank">View Workshop &rarr;</a>'
+        : '';
+      let btnHtml;
+      if (myVote) {
+        const label = isMyVote ? '&#x2705; Your Vote' : 'Voted';
+        btnHtml = '<button class="cast-vote-btn' + (isMyVote ? ' my-vote' : '') + '" disabled>' + label + '</button>';
+      } else {
+        btnHtml = '<button class="cast-vote-btn" onclick="submitVote(' + challengeId + ', \'' + b.name.replace(/'/g, "\\'") + '\', this)">Vote for this Build</button>';
+      }
+      return '<div class="vote-build-card' + (isMyVote ? ' voted-card' : '') + '">'
+        + '<div class="vote-build-img">' + imgHtml + '</div>'
+        + '<div class="vote-build-body">'
+        + '<h3>' + b.name + '</h3>'
+        + (b.description ? '<p>' + b.description + '</p>' : '')
+        + resultBar
+        + '<div class="vote-build-footer">' + btnHtml + workshopLink + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } else {
+    buildsHtml = '<div class="empty-msg">No builds loaded. Make sure <code>VOTING_BUILDS_SHEET_URL</code> is set and has a "Challenge" column matching "<strong>' + c.name + '</strong>".</div>';
+  }
+
+  const statusLine = myVote
+    ? '<p style="margin-top:10px;color:var(--gold);font-weight:700;font-size:0.88rem;">&#x2705; You voted for <strong>' + myVote + '</strong>' + (tallies ? ' &mdash; ' + totalVotes + ' total vote' + (totalVotes !== 1 ? 's' : '') : '') + '</p>'
+    : '<p style="margin-top:10px;color:var(--cream-dim);font-size:0.85rem;">Pick your favourite build below &mdash; you can only vote once!</p>';
+
+  document.getElementById('vote-detail-content').innerHTML =
+    '<div style="margin-bottom:24px;">'
+    + '<h2 style="font-family:\'Bangers\',cursive;font-size:2rem;letter-spacing:2px;color:var(--cream);margin-bottom:6px;">' + c.name + ' <span class="voting-badge">&#x1F5F3;&#xFE0F; Voting Open</span></h2>'
+    + (c.description ? '<p style="color:var(--cream-dim);font-size:0.93rem;line-height:1.6;max-width:680px;">' + c.description + '</p>' : '')
+    + statusLine
+    + '</div>'
+    + '<div class="vote-builds-grid">' + buildsHtml + '</div>';
+
+  showPage('vote');
+}
+
+async function submitVote(challengeId, buildName, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Submitting\u2026';
+  await castVote(challengeId, buildName);
+  await openVotePage(challengeId);
+  renderVotingPage();
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
@@ -1921,6 +2371,12 @@ renderPartners();
   const hardcodedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?output=csv';
   const input = document.getElementById('partners-sheet-url');
   if (input) { input.value = hardcodedUrl; loadPartnersSheet(); }
+})();
+
+// Load voting builds and render voting page (runs after challenges load)
+(async function() {
+  await loadVotingBuilds();
+  renderVotingPage();
 })();
 
 // ── FEATURED VIDEO ─────────────────────────────────────────────────────────
