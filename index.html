@@ -915,6 +915,15 @@
     cursor: pointer;
     transition: all 0.2s;
     gap: 16px;
+    min-height: 72px;
+  }
+
+  .challenge-row-right {
+    min-width: 140px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 0;
   }
 
   .challenge-row:hover {
@@ -1927,12 +1936,16 @@ function renderChallengesList() {
     const isVoting = c.voting === 'yes' || c.voting === 'true';
     const isLive   = c.live   === 'yes' || c.live   === 'true';
     const myVote   = getMyVote(c.id);
-    // Right side: voting tag (red) if open, else winner
-    const rightSide = isVoting
-      ? (myVote
-          ? '<span class="voted-tag">&#x2705; Voted</span>'
-          : '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>')
-      : '<span class="challenge-winner">' + c.winner + '</span>';
+    // Right side: voting tag if voting open, winner only if not live/voting, else empty
+    let rightContent = '';
+    if (isVoting) {
+      rightContent = myVote
+        ? '<span class="voted-tag">&#x2705; Voted</span>'
+        : '<span class="challenge-voting-tag">&#x1F5F3;&#xFE0F; Voting Open</span>';
+    } else if (!isLive && c.winner) {
+      rightContent = '<span class="challenge-winner">' + c.winner + '</span>';
+    }
+    const rightSide = '<div class="challenge-row-right">' + rightContent + '</div>';
     // Left indicator dot (green) if live
     const liveDot = isLive ? '<span class="challenge-live-dot"></span>' : '';
     const card = '<div class="challenge-row" onclick="showChallenge(' + i + ')" style="flex:1;' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
