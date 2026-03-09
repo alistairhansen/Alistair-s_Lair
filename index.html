@@ -363,30 +363,37 @@
 
   /* ── HOME PARTNERS STRIP ─────────────── */
   .home-partners-strip {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
-    flex-wrap: wrap;
+  }
+
+  @media (max-width: 700px) {
+    .home-partners-strip { grid-template-columns: 1fr; }
   }
 
   .home-partner-pill {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     background: var(--navy-mid);
     border: 1px solid rgba(245,131,31,0.2);
     border-radius: 10px;
-    padding: 12px 18px;
+    padding: 14px 18px;
     text-decoration: none;
-    transition: all 0.2s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
+    overflow: hidden;
   }
 
   .home-partner-pill:hover {
     border-color: var(--orange);
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
 
-  .home-partner-pill .icon { font-size: 1.4rem; }
+  .home-partner-pill .icon { font-size: 1.4rem; flex-shrink: 0; }
 
   .home-partner-pill .name {
     font-weight: 800;
@@ -397,6 +404,31 @@
   .home-partner-pill .members {
     font-size: 0.75rem;
     color: var(--cream-dim);
+  }
+
+  .home-partner-pill .pill-hover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(13,27,46,0.92);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .home-partner-pill:hover .pill-hover-overlay {
+    opacity: 1;
+  }
+
+  .home-partner-pill .pill-hover-overlay .partner-link {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+    white-space: nowrap;
   }
 
   .view-all-link {
@@ -1686,25 +1718,33 @@ function renderPartners() {
   if (homeCount) homeCount.textContent = count;
   if (aboutCount) aboutCount.textContent = count;
 
-  // Home strip
+  // Home strip — top 3 partners only
   const strip = document.getElementById('home-partners-strip');
   if (!strip) return;
   if (!partners.length) {
     strip.innerHTML = '<p style="color:var(--cream-dim);font-size:0.85rem;">Connect a Google Sheet on the Partners page to show partners here.</p>';
   } else {
-    strip.innerHTML = partners.map(p => `
-      <div class="home-partner-pill" onclick="window.open('${p.url}','_blank')">
-        ${p.logo
-          ? `<img src="${p.logo}" alt="${p.name}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:var(--navy-light);" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🤝</span>'">`
-          : `<span style="font-size:1.4rem">🤝</span>`}
-        <div>
-          <div class="name">${p.name}</div>
-          <div class="members">${p.desc.slice(0,40)}${p.desc.length>40?'…':''}</div>
-        </div>
-      </div>`).join('');
+    strip.innerHTML = partners.slice(0, 3).map(p => {
+      const hasDiscord = p.discord && p.discord !== '#' && p.discord !== '';
+      const hasYoutube = p.youtube && p.youtube !== '#' && p.youtube !== '';
+      let overlayBtns = '';
+      if (hasDiscord && hasYoutube) {
+        overlayBtns = '<a class="partner-link discord" href="' + p.discord + '" target="_blank" onclick="event.stopPropagation()">💬 Discord</a>'
+                    + '<a class="partner-link youtube" href="' + p.youtube + '" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>';
+      } else if (hasDiscord) {
+        overlayBtns = '<a class="partner-link discord" href="' + p.discord + '" target="_blank" onclick="event.stopPropagation()">💬 Join Discord</a>';
+      } else if (hasYoutube) {
+        overlayBtns = '<a class="partner-link youtube" href="' + p.youtube + '" target="_blank" onclick="event.stopPropagation()">▶ YouTube Channel</a>';
+      } else if (p.url && p.url !== '#') {
+        overlayBtns = '<a class="partner-link" href="' + p.url + '" target="_blank" onclick="event.stopPropagation()">Visit →</a>';
+      }
+      const logoHtml = p.logo
+        ? `<img src="${p.logo}" alt="${p.name}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:var(--navy-light);flex-shrink:0;" onerror="this.outerHTML='<span style=\'font-size:1.4rem\'>🤝</span>'">`
+        : '<span style="font-size:1.4rem">🤝</span>';
+      return `<div class="home-partner-pill" onclick="showPage('partners')">${logoHtml}<div><div class="name">${p.name}</div><div class="members">${p.desc.slice(0,40)}${p.desc.length>40?'…':''}</div></div><div class="pill-hover-overlay">${overlayBtns}</div></div>`;
+    }).join('');
   }
 }
-
 async function fetchCSV(url) {
   const proxies = [
     u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
