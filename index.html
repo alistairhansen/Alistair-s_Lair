@@ -658,6 +658,18 @@
     transform: translateY(0);
   }
 
+  /* Transparent bridge: fills the gap between the nav bottom and the video box top
+     so hovering nav stays "active" as your mouse moves down into the video box */
+  nav::after {
+    content: '';
+    position: fixed;
+    top: 64px;
+    right: 0;
+    width: 340px;
+    height: 12px;
+    background: transparent;
+  }
+
   .featured-label {
     font-family: 'Bangers', cursive;
     font-size: 1rem;
