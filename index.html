@@ -1489,6 +1489,14 @@
 
 
   /* Live / voting indicators on challenge rows */
+  .challenge-item-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .challenge-item-wrap .challenge-live-dot {
+    flex-shrink: 0;
+  }
   .challenge-live-dot {
     width: 10px;
     height: 10px;
@@ -1547,10 +1555,8 @@
     <li><a href="#" class="active" id="nav-home" onclick="showPage('home')">Home</a></li>
     <li><a href="#" id="nav-about" onclick="showPage('about')">About</a></li>
     <li><a href="#" id="nav-announcements" onclick="showPage('announcements')">News &amp; Events</a></li>
-    <li style="position:relative;">
-      <a href="#" id="nav-challenges" onclick="showPage('challenges')">Challenges</a>
-      <span id="nav-dot-live"   style="display:none;position:absolute;top:4px;right:0px;width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;pointer-events:none;"></span>
-      <span id="nav-dot-voting" style="display:none;position:absolute;top:4px;right:-9px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span>
+    <li>
+      <a href="#" id="nav-challenges" onclick="showPage('challenges')" style="position:relative;">Challenges<span id="nav-dot-live" style="display:none;position:absolute;top:3px;right:5px;width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;pointer-events:none;"></span><span id="nav-dot-voting" style="display:none;position:absolute;top:3px;right:-4px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span></a>
     </li>
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery')">Gallery</a></li>
     <li><a href="#" id="nav-partners" onclick="showPage('partners')">Partners</a></li>
@@ -1909,8 +1915,7 @@ function renderChallengesList() {
       : '<span class="challenge-winner">' + c.winner + '</span>';
     // Left indicator dot (green) if live
     const liveDot = isLive ? '<span class="challenge-live-dot"></span>' : '';
-    return '<div class="challenge-row" onclick="showChallenge(' + i + ')" style="' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
-      + liveDot
+    const card = '<div class="challenge-row" onclick="showChallenge(' + i + ')" style="flex:1;' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
       + '<div class="challenge-row-left">'
       + '<div class="challenge-num">#' + c.id + '</div>'
       + '<div><h3>' + c.name + '</h3>'
@@ -1920,6 +1925,7 @@ function renderChallengesList() {
       + rightSide
       + '<span class="challenge-arrow">→</span>'
       + '</div>';
+    return '<div class="challenge-item-wrap">' + liveDot + card + '</div>';
   }).join('');
 }
 
