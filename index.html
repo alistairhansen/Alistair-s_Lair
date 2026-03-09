@@ -2306,14 +2306,16 @@ function setMyVote(challengeId, buildName) { localStorage.setItem('al_vote_' + c
 async function castVote(challengeId, buildName, challengeName) {
   setMyVote(challengeId, buildName);
   if (!VOTE_API_URL) return { localOnly: true };
-  // Use the challenge name as the key so it matches the sheet's Challenge column
   const sheetKey = challengeName || String(challengeId);
+  // Use GET to avoid CORS preflight issues with Apps Script
   try {
-    const r = await fetch(VOTE_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challenge_id: sheetKey, build_name: buildName, voter_id: getVoterId() })
+    const params = new URLSearchParams({
+      action: 'vote',
+      challenge_id: sheetKey,
+      build_name: buildName,
+      voter_id: getVoterId()
     });
+    const r = await fetch(VOTE_API_URL + '?' + params.toString());
     return await r.json();
   } catch(e) { return { localOnly: true }; }
 }
