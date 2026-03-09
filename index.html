@@ -1556,7 +1556,7 @@
     <li><a href="#" id="nav-about" onclick="showPage('about')">About</a></li>
     <li><a href="#" id="nav-announcements" onclick="showPage('announcements')">News &amp; Events</a></li>
     <li>
-      <a href="#" id="nav-challenges" onclick="showPage('challenges')" style="position:relative;">Challenges<span id="nav-dot-live" style="display:none;position:absolute;top:3px;right:5px;width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;pointer-events:none;"></span><span id="nav-dot-voting" style="display:none;position:absolute;top:3px;right:-4px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span></a>
+      <a href="#" id="nav-challenges" onclick="showPage('challenges')" style="position:relative;">Challenges<span id="nav-dot-voting" style="display:none;position:absolute;top:3px;right:-4px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span></a>
     </li>
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery')">Gallery</a></li>
     <li><a href="#" id="nav-partners" onclick="showPage('partners')">Partners</a></li>
@@ -1894,12 +1894,32 @@ function renderAnnouncements(id, limit) {
 }
 
 
+
+async function resetVotesIfNeeded() {
+  // For each challenge: if voting is now OFF, clear localStorage vote + reset sheet
+  // Track previous voting state per challenge in localStorage
+  for (const c of challenges) {
+    const storageKey  = 'al_voting_was_open_' + c.id;
+    const wasOpen     = localStorage.getItem(storageKey) === 'yes';
+    const isNowOpen   = c.voting === 'yes' || c.voting === 'true';
+
+    if (wasOpen && !isNowOpen) {
+      // Voting just closed — clear local vote so user can vote next time
+      localStorage.removeItem('al_vote_' + c.id);
+      // Reset sheet vote counts + voter log via Apps Script
+      if (VOTE_API_URL) {
+        try {
+          await fetch(VOTE_API_URL + '?action=reset&challenge_id=' + encodeURIComponent(String(c.id)));
+        } catch(e) {}
+      }
+    }
+    // Update stored state
+    localStorage.setItem(storageKey, isNowOpen ? 'yes' : 'no');
+  }
+}
 function updateNavDots() {
-  const hasLive   = challenges.some(c => c.live   === 'yes' || c.live   === 'true');
   const hasVoting = challenges.some(c => c.voting === 'yes' || c.voting === 'true');
-  const dotLive   = document.getElementById('nav-dot-live');
   const dotVoting = document.getElementById('nav-dot-voting');
-  if (dotLive)   dotLive.style.display   = hasLive   ? 'inline-block' : 'none';
   if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
 }
 function renderChallengesList() {
@@ -2190,7 +2210,7 @@ async function loadChallengesSheet() {
     if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
     renderChallengesList();
     renderVotingPage();
-    updateNavDots();
+    resetVotesIfNeeded().then(updateNavDots);
     localStorage.setItem('challenges-sheet-url', url);
   } catch(e) {
     list.innerHTML = `<div class="empty-msg">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
@@ -2428,7 +2448,7 @@ renderPartners();
   const hardcodedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=8812323&output=csv';
   const input = document.getElementById('challenges-sheet-url');
   if (input) { input.value = hardcodedUrl; loadChallengesSheet(); }
-  else { renderChallengesList(); renderVotingPage(); updateNavDots(); }
+  else { renderChallengesList(); renderVotingPage(); resetVotesIfNeeded().then(updateNavDots); }
 })();
 
 // Auto-load partners from hardcoded sheet URL
