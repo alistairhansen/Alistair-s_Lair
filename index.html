@@ -908,14 +908,15 @@
     background: var(--navy-mid);
     border: 1px solid rgba(245,131,31,0.2);
     border-radius: 10px;
-    padding: 18px 22px;
+    padding: 0 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
     transition: all 0.2s;
     gap: 16px;
-    min-height: 72px;
+    height: 72px;
+    overflow: hidden;
   }
 
   .challenge-row-right {
@@ -1982,7 +1983,7 @@ function showChallenge(index) {
     const voteLabel = myVote ? `✅ You voted: ${myVote}` : '🗳️ Voting is Open — Cast Your Vote';
     const btnStyle = myVote
       ? `style="background:rgba(232,184,75,0.15);border:1px solid var(--gold);color:var(--gold);cursor:default;"`
-      : `onclick="openVotePage(${c.id})"`;
+      : `onclick="openVotePage(${c.id}, 'challenge-detail')"`;
     statusHtml += `<button class="vote-btn" ${btnStyle} style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">${voteLabel}</button>`;
   }
   document.getElementById('challenge-detail-content').innerHTML = `
@@ -2302,23 +2303,26 @@ function getVoterId() {
 function getMyVote(challengeId) { return localStorage.getItem('al_vote_' + challengeId); }
 function setMyVote(challengeId, buildName) { localStorage.setItem('al_vote_' + challengeId, buildName); }
 
-async function castVote(challengeId, buildName) {
+async function castVote(challengeId, buildName, challengeName) {
   setMyVote(challengeId, buildName);
   if (!VOTE_API_URL) return { localOnly: true };
+  // Use the challenge name as the key so it matches the sheet's Challenge column
+  const sheetKey = challengeName || String(challengeId);
   try {
     const r = await fetch(VOTE_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challenge_id: String(challengeId), build_name: buildName, voter_id: getVoterId() })
+      body: JSON.stringify({ challenge_id: sheetKey, build_name: buildName, voter_id: getVoterId() })
     });
     return await r.json();
   } catch(e) { return { localOnly: true }; }
 }
 
-async function fetchTallies(challengeId) {
+async function fetchTallies(challengeId, challengeName) {
   if (!VOTE_API_URL) return null;
+  const sheetKey = challengeName || String(challengeId);
   try {
-    const r = await fetch(VOTE_API_URL + '?challenge_id=' + encodeURIComponent(challengeId));
+    const r = await fetch(VOTE_API_URL + '?challenge_id=' + encodeURIComponent(sheetKey));
     const d = await r.json();
     return d.tallies || null;
   } catch(e) { return null; }
@@ -2377,12 +2381,15 @@ function renderVotingPage() {
 }
 
 // ── OPEN VOTE DETAIL PAGE ──────────────────────────────────────────────────
-async function openVotePage(challengeId) {
+let _voteReturnPage = 'challenges'; // track where to go back to after voting
+
+async function openVotePage(challengeId, returnPage) {
+  if (returnPage) _voteReturnPage = returnPage;
   const c = challenges.find(x => x.id === challengeId);
   if (!c) return;
   const builds = votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase());
   const myVote = getMyVote(challengeId);
-  const tallies = await fetchTallies(challengeId);
+  const tallies = await fetchTallies(challengeId, c.name);
   const totalVotes = tallies ? Object.values(tallies).reduce((a, b) => a + b, 0) : 0;
 
   let buildsHtml;
@@ -2442,9 +2449,11 @@ async function openVotePage(challengeId) {
 async function submitVote(challengeId, buildName, btn) {
   btn.disabled = true;
   btn.textContent = 'Submitting\u2026';
-  await castVote(challengeId, buildName);
-  await openVotePage(challengeId);
+  const c = challenges.find(x => x.id === challengeId);
+  await castVote(challengeId, buildName, c ? c.name : null);
+  renderChallengesList();
   renderVotingPage();
+  showPage(_voteReturnPage);
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
