@@ -1547,10 +1547,10 @@
     <li><a href="#" class="active" id="nav-home" onclick="showPage('home')">Home</a></li>
     <li><a href="#" id="nav-about" onclick="showPage('about')">About</a></li>
     <li><a href="#" id="nav-announcements" onclick="showPage('announcements')">News &amp; Events</a></li>
-    <li style="position:relative;display:flex;align-items:center;gap:0;">
+    <li style="position:relative;">
       <a href="#" id="nav-challenges" onclick="showPage('challenges')">Challenges</a>
-      <span id="nav-dot-live"   style="display:none;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:3px;box-shadow:0 0 5px #22c55e;flex-shrink:0;"></span>
-      <span id="nav-dot-voting" style="display:none;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-left:3px;box-shadow:0 0 5px #ef4444;flex-shrink:0;"></span>
+      <span id="nav-dot-live"   style="display:none;position:absolute;top:2px;right:-4px;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;pointer-events:none;"></span>
+      <span id="nav-dot-voting" style="display:none;position:absolute;top:2px;right:-14px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span>
     </li>
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery')">Gallery</a></li>
     <li><a href="#" id="nav-partners" onclick="showPage('partners')">Partners</a></li>
@@ -1928,11 +1928,30 @@ function showChallenge(index) {
   const videoHtml = c.videoId
     ? `<iframe src="https://www.youtube.com/embed/${c.videoId}" frameborder="0" allowfullscreen></iframe>`
     : `<div class="challenge-video-placeholder">▶</div>`;
+  const isVoting = c.voting === 'yes' || c.voting === 'true';
+  const isLive   = c.live   === 'yes' || c.live   === 'true';
+  const myVote   = getMyVote(c.id);
+  const winnerHtml = c.winner
+    ? `<div class="winner-badge">🏆 Winner: ${c.winner.replace('🏆 ','')}</div>` : '';
+  let statusHtml = '';
+  if (isLive) {
+    statusHtml += `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);color:#22c55e;font-size:0.82rem;font-weight:800;padding:5px 14px;border-radius:6px;margin-bottom:10px;margin-right:8px;letter-spacing:0.5px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;display:inline-block;"></span> LIVE NOW
+    </div>`;
+  }
+  if (isVoting) {
+    const voteLabel = myVote ? `✅ You voted: ${myVote}` : '🗳️ Voting is Open — Cast Your Vote';
+    const btnStyle = myVote
+      ? `style="background:rgba(232,184,75,0.15);border:1px solid var(--gold);color:var(--gold);cursor:default;"`
+      : `onclick="openVotePage(${c.id})"`;
+    statusHtml += `<button class="vote-btn" ${btnStyle} style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">${voteLabel}</button>`;
+  }
   document.getElementById('challenge-detail-content').innerHTML = `
     <div class="challenge-video-wrap">${videoHtml}</div>
     <div class="challenge-detail-body">
       <h2>${c.name}</h2>
-      <div class="winner-badge">🏆 Winner: ${c.winner.replace('🏆 ','')}</div>
+      ${statusHtml}
+      ${winnerHtml}
       <p class="challenge-desc">${c.description}</p>
     </div>`;
   showPage('challenge-detail');
