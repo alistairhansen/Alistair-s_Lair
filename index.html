@@ -1500,20 +1500,19 @@
 
   /* Live / voting indicators on challenge rows */
   .challenge-item-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .challenge-item-wrap .challenge-live-dot {
-    flex-shrink: 0;
+    position: relative;
   }
   .challenge-live-dot {
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: #22c55e;
     box-shadow: 0 0 6px #22c55e;
-    flex-shrink: 0;
+    z-index: 1;
     animation: live-pulse 2s ease-in-out infinite;
   }
   @keyframes live-pulse {
@@ -2126,7 +2125,7 @@ function renderChallengesList() {
       + rightSide
       + '<span class="challenge-arrow">→</span>'
       + '</div>';
-    return '<div class="challenge-item-wrap">' + liveDot + card + '</div>';
+    return '<div class="challenge-item-wrap">' + card.replace('<div class="challenge-row"', liveDot + '<div class="challenge-row"') + '</div>';
   }).join('');
   // Start inline vote countdown timers
   challenges.forEach(c => {
