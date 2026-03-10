@@ -921,12 +921,11 @@
 
   .challenge-row-right {
     min-width: 120px;
-    max-width: 220px;
+    max-width: 240px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     flex-shrink: 0;
-    overflow: hidden;
   }
 
   .challenge-row:hover {
@@ -973,11 +972,22 @@
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+    max-width: 220px;
+    overflow: hidden;
+  }
+  .winner-trophies {
+    font-size: 0.95rem;
+    flex-shrink: 0;   /* trophy emoji never gets clipped */
     white-space: nowrap;
   }
-  .winner-trophies { letter-spacing: 1px; font-size: 0.95rem; white-space: nowrap; }
-  .winner-names { color: var(--gold); font-weight: 700; white-space: nowrap; }
+  .winner-names {
+    color: var(--gold);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   #challenges-stats-bar {
     margin-bottom: 18px;
@@ -2266,7 +2276,10 @@ function renderChallengesList() {
   });
 }
 
+let _lastChallengeIndex = null; // track which challenge was last opened
+
 function showChallenge(index) {
+  _lastChallengeIndex = index;
   const c = challenges[index];
   const isVoting = c.voting === 'yes' || c.voting === 'true';
   const isLive   = c.live   === 'yes' || c.live   === 'true';
@@ -2544,7 +2557,11 @@ async function loadChallengesSheet() {
     const winnerIdx   = headers.findIndex(h => h.includes('winner'));
     const descIdx     = headers.findIndex(h => h.includes('desc'));
     const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
-    const introVideoIdx = headers.findIndex(h => h.includes('intro') && (h.includes('video') || h.includes('vid')));
+    const introVideoIdx = headers.findIndex(h =>
+      (h.includes('intro') && (h.includes('video') || h.includes('vid') || h.includes('url') || h.includes('link'))) ||
+      h === 'intro' || h === 'brief' || h === 'brief_video' || h === 'briefvideo' ||
+      h === 'intro_url' || h === 'intro_link' || h === 'challenge_video' || h === 'challenge_vid'
+    );
     const subtitleIdx = headers.findIndex(h => h === 'subtitle');
     const votingIdx   = headers.findIndex(h => h.includes('voting') || h === 'vote');
     const liveIdx     = headers.findIndex(h => h === 'live' || h.includes('live'));
@@ -2860,11 +2877,15 @@ async function submitVote(challengeId, buildName, btn) {
   btn.textContent = 'Submitting\u2026';
   const c = challenges.find(x => x.id === challengeId);
   await castVote(challengeId, buildName, c ? c.name : null);
-  // Re-render everything FIRST so voted state is visible immediately on return
+  // Re-render everything so voted state is visible immediately on return
   renderChallengesList();
   renderVotingPage();
-  // Small delay so the user sees confirmation before jumping back
-  showPage('challenges');
+  // Return to challenge detail if that's where the vote was opened from
+  if (_voteReturnPage === 'challenge-detail' && _lastChallengeIndex !== null) {
+    showChallenge(_lastChallengeIndex);
+  } else {
+    showPage('challenges');
+  }
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
