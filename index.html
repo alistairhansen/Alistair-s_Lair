@@ -648,30 +648,56 @@
     aspect-ratio: 4/3;
     cursor: pointer;
     background: var(--navy-mid);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .gallery-item:hover {
+    border-color: rgba(245,131,31,0.6);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
   }
 
   .gallery-item img {
     width: 100%; height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
+    transition: transform 0.4s ease, filter 0.4s ease;
+    display: block;
   }
 
-  .gallery-item:hover img { transform: scale(1.05); }
+  .gallery-item:hover img {
+    transform: scale(1.06);
+    filter: blur(3px) brightness(0.55);
+  }
 
   .gallery-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(13,27,46,0.7);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.2s;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--cream);
+    transition: opacity 0.3s;
+    padding: 20px;
     text-align: center;
-    padding: 12px;
+    pointer-events: none;
+  }
+
+  .gallery-overlay-label {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--cream);
+    line-height: 1.4;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    letter-spacing: 0.3px;
+  }
+
+  .gallery-overlay-desc {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cream-dim);
+    margin-top: 8px;
+    line-height: 1.5;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9);
   }
 
   .gallery-item:hover .gallery-overlay { opacity: 1; }
@@ -2254,16 +2280,7 @@ let challenges = []; // loaded from sheet
 // Partners are loaded from Google Sheets — see loadPartnersSheet()
 let partners = [];
 
-const galleryItems = [
-  { emoji:'🏰', label:'Medieval Fortress Winner Build' },
-  { emoji:'🚀', label:'Sci-Fi Station Entry' },
-  { emoji:'🌲', label:'Fantasy Treehouse Showcase' },
-  { emoji:'🎮', label:'Community Game Night' },
-  { emoji:'🏗️', label:'Workshop Build Preview' },
-  { emoji:'🎉', label:'1K Subscriber Celebration' },
-  { emoji:'🔧', label:'Behind the Build' },
-  { emoji:'🌍', label:'Builders Collective Collab' },
-];
+let galleryItems = [];
 
 // ── PAGE NAVIGATION ────────────────────────────────────────────────────────
 function showPage(name) {
@@ -2649,11 +2666,60 @@ function showChallenge(index) {
 }
 
 function renderGallery() {
-  document.getElementById('gallery-grid').innerHTML = galleryItems.map(g => `
-    <div class="gallery-item gallery-placeholder">
-      <span>${g.emoji}</span>
-      <div class="gallery-overlay">${g.label}</div>
-    </div>`).join('');
+  const grid = document.getElementById('gallery-grid');
+  if (!grid) return;
+  if (!galleryItems.length) {
+    grid.innerHTML = '<div class="gallery-placeholder" style="grid-column:1/-1;font-size:2rem;color:rgba(245,131,31,0.3);">🖼️</div>';
+    return;
+  }
+  grid.innerHTML = galleryItems.map(g => {
+    if (g.image) {
+      return `<div class="gallery-item">
+        <img src="${g.image}" alt="${g.label}" onerror="this.parentElement.classList.add('gallery-placeholder');this.remove()">
+        <div class="gallery-overlay">
+          <div class="gallery-overlay-label">${g.label}</div>
+          ${g.desc ? `<div class="gallery-overlay-desc">${g.desc}</div>` : ''}
+        </div>
+      </div>`;
+    } else {
+      return `<div class="gallery-item gallery-placeholder">
+        <span>🖼️</span>
+        <div class="gallery-overlay">
+          <div class="gallery-overlay-label">${g.label}</div>
+          ${g.desc ? `<div class="gallery-overlay-desc">${g.desc}</div>` : ''}
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+async function loadGallerySheet() {
+  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=597194859&output=csv';
+  // Apply cache immediately
+  const cached = cacheGet('al_gallery_items');
+  if (cached && cached.length) { galleryItems = cached; renderGallery(); }
+  try {
+    const csv = await fetchCSV(url);
+    if (!csv) return;
+    const rows = parseCSV(csv);
+    if (rows.length < 2) return;
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const labelIdx = headers.findIndex(h => h.includes('label') || h.includes('title') || h.includes('name'));
+    const imageIdx = headers.findIndex(h => h.includes('image') || h.includes('img') || h.includes('photo') || h.includes('url'));
+    const descIdx  = headers.findIndex(h => h.includes('desc'));
+    const items = rows.slice(1)
+      .filter(r => r.some(c => c.trim()))
+      .map(r => ({
+        label: labelIdx >= 0 ? r[labelIdx].trim() : '',
+        image: imageIdx >= 0 ? r[imageIdx].trim() : '',
+        desc:  descIdx  >= 0 ? r[descIdx].trim()  : '',
+      }))
+      .filter(g => g.label || g.image);
+    if (!items.length) return;
+    galleryItems = items;
+    cacheSet('al_gallery_items', galleryItems);
+    renderGallery();
+  } catch(e) { console.warn('Gallery sheet failed:', e); }
 }
 
 function renderPartners() {
@@ -3194,7 +3260,7 @@ async function submitVote(challengeId, buildName, btn) {
 })();
 // Load live announcements from sheet
 loadAnnouncementsSheet();
-renderGallery();
+loadGallerySheet();
 renderPartners();
 
 // Auto-load workshop builds from hardcoded sheet URL
