@@ -2120,6 +2120,12 @@
   <div class="section-wrap">
     <div class="section-title">Build Challenges</div>
     <p class="section-sub">Click a challenge to see the video, winner, and description</p>
+    <div style="margin-bottom:24px;">
+      <a href="https://discord.gg/PvTjbE8eNt" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:#4752c4;border:2px solid #5865f2;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.5px;padding:12px 24px;border-radius:10px;transition:filter 0.2s,transform 0.2s;" onmouseover="this.style.filter='brightness(1.15)';this.style.transform='translateY(-2px)'" onmouseout="this.style.filter='';this.style.transform=''">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.036.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .036-.055c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        Want to Join Challenges?
+      </a>
+    </div>
     <input type="hidden" id="challenges-sheet-url">
     <div id="challenges-stats-bar" style="display:none;"></div>
     <div class="challenges-list" id="challenges-list"></div>
@@ -2138,9 +2144,15 @@
 <div id="page-gallery" class="page">
   <div class="section-wrap">
     <div class="section-title">Photo Gallery</div>
-    <p class="section-sub">Moments from streams, builds, and events</p>
+    <p class="section-sub">A place to share some epic gaming moments and more!</p>
     <div class="gallery-grid" id="gallery-grid"></div>
   </div>
+</div>
+
+<!-- ── GALLERY LIGHTBOX ───────────────── -->
+<div id="gallery-lightbox" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;">
+  <button onclick="closeLightbox()" style="position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:8px;background:rgba(245,131,31,0.15);border:1px solid var(--orange);color:var(--cream);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:8px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,131,31,0.35)'" onmouseout="this.style.background='rgba(245,131,31,0.15)'">← Back</button>
+  <img id="lightbox-img" src="" alt="" style="max-width:92vw;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 80px rgba(0,0,0,0.8);">
 </div>
 
 <!-- ── PARTNERS PAGE ─────────────────── -->
@@ -2665,6 +2677,30 @@ function showChallenge(index) {
   if (isLive && c.liveEnd) startDetailTimer('live-timer-' + c.id, c.liveEnd, 'Time Left');
 }
 
+function openLightbox(src) {
+  const lb = document.getElementById('gallery-lightbox');
+  document.getElementById('lightbox-img').src = src;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('gallery-lightbox');
+  lb.style.display = 'none';
+  document.getElementById('lightbox-img').src = '';
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.getElementById('gallery-lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
@@ -2674,7 +2710,7 @@ function renderGallery() {
   }
   grid.innerHTML = galleryItems.map(g => {
     if (g.image) {
-      return `<div class="gallery-item">
+      return `<div class="gallery-item" onclick="openLightbox('${g.image.replace(/'/g,"\\'")}')">
         <img src="${g.image}" alt="${g.label}" onerror="this.parentElement.classList.add('gallery-placeholder');this.remove()">
         <div class="gallery-overlay">
           <div class="gallery-overlay-label">${g.label}</div>
