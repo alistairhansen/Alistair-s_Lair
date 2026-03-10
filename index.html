@@ -978,6 +978,32 @@
   .winner-trophies { letter-spacing: 1px; font-size: 1rem; }
   .winner-names { color: var(--gold); font-weight: 700; }
 
+  #challenges-stats-bar {
+    margin-bottom: 18px;
+  }
+  .challenges-stat-pill {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.13);
+    color: var(--cream-dim);
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+  }
+  .submission-count-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--cream-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
   .challenge-arrow {
     color: var(--orange);
     font-size: 1.2rem;
@@ -1825,6 +1851,7 @@
     <div class="section-title">Build Challenges</div>
     <p class="section-sub">Click a challenge to see the video, winner, and description</p>
     <input type="hidden" id="challenges-sheet-url">
+    <div id="challenges-stats-bar" style="display:none;"></div>
     <div class="challenges-list" id="challenges-list"></div>
   </div>
 </div>
@@ -2118,12 +2145,31 @@ function updateNavDots() {
   const dotVoting = document.getElementById('nav-dot-voting');
   if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
 }
+function updateChallengesStats() {
+  const bar = document.getElementById('challenges-stats-bar');
+  if (!bar || !votingBuilds.length) return;
+  const total = votingBuilds.length;
+  bar.innerHTML = '<span class="challenges-stat-pill">📋 ' + total + ' total submission' + (total !== 1 ? 's' : '') + ' across all challenges</span>';
+  bar.style.display = 'block';
+}
+
 function renderChallengesList() {
   clearAllTimers();
-  document.getElementById('challenges-list').innerHTML = challenges.map((c,i) => {
+  // Display in reverse order so newest (highest #) is at top, oldest (#1) at bottom
+  const displayChallenges = challenges.slice().reverse();
+  document.getElementById('challenges-list').innerHTML = displayChallenges.map((c,_i) => {
+    // Find original index for showChallenge()
+    const origIndex = challenges.indexOf(c);
     const isVoting = c.voting === 'yes' || c.voting === 'true';
     const isLive   = c.live   === 'yes' || c.live   === 'true';
     const myVote   = getMyVote(c.id);
+    // Submission count badge (only if builds are loaded)
+    const subCount = votingBuilds.length
+      ? votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase()).length
+      : null;
+    const subBadge = subCount !== null && subCount > 0
+      ? '<span class="submission-count-badge">' + subCount + ' submission' + (subCount !== 1 ? 's' : '') + '</span>'
+      : '';
     // Right side: voting tag if voting open, winner only if not live/voting, else empty
     let rightContent = '';
     if (isVoting) {
@@ -2149,12 +2195,12 @@ function renderChallengesList() {
     const rightSide = '<div class="challenge-row-right">' + rightContent + '</div>';
     // Left indicator dot (green) if live
     const liveDot = isLive ? '<span class="challenge-live-dot"></span>' : '';
-    const card = '<div class="challenge-row" onclick="showChallenge(' + i + ')" style="flex:1;' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
+    const card = '<div class="challenge-row" onclick="showChallenge(' + origIndex + ')" style="flex:1;' + (isLive ? 'border-color:rgba(34,197,94,0.4);' : '') + '">'
       + '<div class="challenge-row-left">'
       + '<div class="challenge-num">#' + c.id + '</div>'
       + '<div><h3>' + c.name + '</h3>'
       + (c.subtitle ? '<p class="challenge-subtitle">' + c.subtitle + '</p>' : '')
-      + '<p>📅 ' + c.date + '</p></div>'
+      + '<p>📅 ' + c.date + (subBadge ? '&nbsp;&nbsp;' + subBadge : '') + '</p></div>'
       + '</div>'
       + rightSide
       + '<span class="challenge-arrow">→</span>'
@@ -2196,6 +2242,10 @@ function showChallenge(index) {
       statusHtml += `<button class="vote-btn" onclick="openVotePage(${c.id}, 'challenge-detail')" style="font-size:0.88rem;padding:10px 22px;border-radius:8px;">🗳️ Voting is Open — Cast Your Vote</button>`;
     }
   }
+  const subCount = votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase()).length;
+  const subCountHtml = subCount > 0
+    ? `<span class="submission-count-badge" style="font-size:0.82rem;padding:4px 12px;">📋 ${subCount} submission${subCount !== 1 ? 's' : ''}</span>`
+    : '';
   document.getElementById('challenge-detail-content').innerHTML = `
     <div class="challenge-video-wrap">${videoHtml}</div>
     <div class="challenge-detail-body">
@@ -2203,7 +2253,10 @@ function showChallenge(index) {
       ${statusHtml}
       ${winnerHtml}
       <p class="challenge-desc">${c.description}</p>
-      <button class="submissions-btn" onclick="showSubmissions(${c.id})">📋 View All Submissions →</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        ${subCountHtml}
+        <button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>
+      </div>
     </div>`;
   showPage('challenge-detail');
   if (isLive && c.liveEnd) startDetailTimer('live-timer-' + c.id, c.liveEnd, 'Time Left');
@@ -2759,6 +2812,9 @@ renderPartners();
 (async function() {
   await loadVotingBuilds();
   renderVotingPage();
+  updateChallengesStats();
+  // Re-render challenges list now that submission counts are available
+  if (challenges.length) renderChallengesList();
 })();
 
 // ── FEATURED VIDEO ─────────────────────────────────────────────────────────
