@@ -2778,7 +2778,7 @@ function showChallenge(index) {
           <p class="challenge-desc">${c.description}</p>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
             ${subCountHtml}
-            <button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>
+            ${!isLive ? `<button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>` : ''}
           </div>
         </div>
         ${introVideoHtml}
