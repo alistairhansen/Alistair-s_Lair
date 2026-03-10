@@ -969,8 +969,14 @@
     font-size: 0.82rem;
     color: var(--gold);
     font-weight: 700;
-    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
+  .winner-trophies { letter-spacing: 1px; font-size: 1rem; }
+  .winner-names { color: var(--gold); font-weight: 700; }
 
   .challenge-arrow {
     color: var(--orange);
@@ -1357,6 +1363,23 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
+  .submissions-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 18px;
+    background: rgba(255,255,255,0.06);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.18);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 9px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .submissions-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.35); }
   .vote-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
   .voted-tag {
     display: inline-flex;
@@ -1889,6 +1912,13 @@
   </div>
 </div>
 
+<div id="page-submissions" class="page">
+  <div class="section-wrap" style="max-width:1100px;">
+    <button class="back-btn" id="submissions-back-btn" onclick="showPage('challenge-detail')">&#x2190; Back</button>
+    <div id="submissions-content"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- ── FOOTER ─────────────────────────── -->
@@ -2110,7 +2140,11 @@ function renderChallengesList() {
           + '</div>';
       }
     } else if (!isLive && c.winner) {
-      rightContent = '<span class="challenge-winner">' + c.winner + '</span>';
+      // Split multiple winners (comma-separated) and display trophies inline then names
+      const winnerNames = c.winner.split(',').map(w => w.replace(/🏆\s*/g, '').trim()).filter(Boolean);
+      const trophies = winnerNames.map(() => '🏆').join('');
+      const names = winnerNames.join(', ');
+      rightContent = '<span class="challenge-winner"><span class="winner-trophies">' + trophies + '</span> <span class="winner-names">' + names + '</span></span>';
     }
     const rightSide = '<div class="challenge-row-right">' + rightContent + '</div>';
     // Left indicator dot (green) if live
@@ -2169,6 +2203,7 @@ function showChallenge(index) {
       ${statusHtml}
       ${winnerHtml}
       <p class="challenge-desc">${c.description}</p>
+      <button class="submissions-btn" onclick="showSubmissions(${c.id})">📋 View All Submissions →</button>
     </div>`;
   showPage('challenge-detail');
   if (isLive && c.liveEnd) startDetailTimer('live-timer-' + c.id, c.liveEnd, 'Time Left');
@@ -2636,6 +2671,52 @@ async function openVotePage(challengeId, returnPage) {
     + '<div class="vote-builds-grid">' + buildsHtml + '</div>';
 
   showPage('vote');
+}
+
+async function showSubmissions(challengeId) {
+  const c = challenges.find(x => x.id === challengeId);
+  if (!c) return;
+
+  document.getElementById('submissions-content').innerHTML =
+    '<div class="loading-msg"><div class="spinner"></div><br>Loading submissions…</div>';
+  showPage('submissions');
+
+  if (!votingBuilds.length) await loadVotingBuilds();
+
+  const builds = votingBuilds.filter(b => b.challenge.toLowerCase() === c.name.toLowerCase());
+
+  let buildsHtml;
+  if (builds.length) {
+    buildsHtml = builds.map(b => {
+      const imgHtml = b.image
+        ? '<img src="' + b.image + '" alt="' + b.name + '" onerror="this.parentElement.innerHTML=\'&#x1F527;\'">'
+        : '&#x1F527;';
+      const workshopLink = b.url
+        ? '<a class="workshop-mini-link" href="' + b.url + '" target="_blank">View Workshop &rarr;</a>'
+        : '';
+      const cardClick = b.url
+        ? 'onclick="window.open(\'' + b.url.replace(/'/g, "\\'") + '\', \'_blank\')" style="cursor:pointer;"'
+        : '';
+      return '<div class="vote-build-card" ' + cardClick + '>'
+        + '<div class="vote-build-img">' + imgHtml + '</div>'
+        + '<div class="vote-build-body">'
+        + '<h3>' + b.name + '</h3>'
+        + (b.description ? '<p>' + b.description + '</p>' : '')
+        + '<div class="vote-build-footer">' + workshopLink + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } else {
+    buildsHtml = '<div class="empty-msg">No submissions found for <strong>' + c.name + '</strong>.</div>';
+  }
+
+  document.getElementById('submissions-content').innerHTML =
+    '<div style="margin-bottom:24px;">'
+    + '<h2 style="font-family:\'Bangers\',cursive;font-size:2rem;letter-spacing:2px;color:var(--cream);margin-bottom:6px;">' + c.name + ' <span style="font-size:1rem;font-family:inherit;font-weight:600;letter-spacing:0;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:var(--cream-dim);padding:4px 12px;border-radius:6px;vertical-align:middle;">📋 Submissions</span></h2>'
+    + (c.description ? '<p style="color:var(--cream-dim);font-size:0.93rem;line-height:1.6;max-width:680px;">' + c.description + '</p>' : '')
+    + '<p style="margin-top:10px;color:var(--cream-dim);font-size:0.85rem;">Click any card or the Workshop link to view the build.</p>'
+    + '</div>'
+    + '<div class="vote-builds-grid">' + buildsHtml + '</div>';
 }
 
 async function submitVote(challengeId, buildName, btn) {
