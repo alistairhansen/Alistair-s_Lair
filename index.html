@@ -2778,7 +2778,7 @@ function showChallenge(index) {
           <p class="challenge-desc">${c.description}</p>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
             ${subCountHtml}
-            ${!isLive ? `<button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>` : ''}
+            <button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>
           </div>
         </div>
         ${introVideoHtml}
@@ -2950,13 +2950,18 @@ function renderPartners() {
 }
 async function fetchCSV(url) {
   const proxies = [
-    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
     u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
     u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+    u => 'https://thingproxy.freeboard.io/fetch/' + encodeURIComponent(u),
+    u => 'https://cors.eu.org/' + u,
   ];
   for (const proxy of proxies) {
     try {
-      const res = await fetch(proxy(url));
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(proxy(url), { signal: controller.signal });
+      clearTimeout(tid);
       if (res.ok) { const text = await res.text(); if (text.trim()) return text; }
     } catch(e) {}
   }
