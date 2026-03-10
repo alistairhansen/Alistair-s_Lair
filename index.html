@@ -341,6 +341,28 @@
 
   .ann-badge.event { background: var(--gold); }
 
+  .ann-card-latest {
+    border-color: rgba(245,131,31,0.6);
+    background: linear-gradient(135deg, var(--navy-mid), rgba(245,131,31,0.06));
+  }
+  .ann-card-latest::before {
+    background: var(--orange);
+    height: 4px;
+  }
+  .ann-latest-badge {
+    position: absolute;
+    top: -1px;
+    right: 16px;
+    background: var(--orange);
+    color: var(--navy);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px 4px;
+    border-radius: 0 0 8px 8px;
+  }
+
   .ann-card h3 {
     font-size: 1.1rem;
     font-weight: 800;
@@ -943,6 +965,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    flex: 1;
+    min-width: 0;
   }
 
   .challenge-num {
@@ -2024,14 +2048,40 @@
 
 <script>
 // ── DATA ───────────────────────────────────────────────────────────────────
-const announcements = [
+let announcements = [
   { type:'announcement', title:'🎉 Channel Hit 1K Subs!', body:'Massive thank you to the community — we just crossed 1,000 subscribers! More content incoming.', date:'June 2025' },
   { type:'event', title:'🏆 June Build Challenge LIVE', body:'The June Build Challenge is now open — theme is Post-Apocalyptic Bases. Submit by June 30!', date:'June 1, 2025' },
   { type:'announcement', title:'📺 New Video Series Starting', body:'Starting a new deep-dive series on workshop builds. First episode drops Friday.', date:'May 28, 2025' },
-  { type:'event', title:'🎮 Community Game Night', body:'Join us on Discord this Saturday at 8PM for a community gaming session. All welcome!', date:'May 25, 2025' },
-  { type:'announcement', title:'🔧 Workshop Update', body:'Three new workshop builds uploaded this week. Check the Workshop tab for progress updates.', date:'May 20, 2025' },
-  { type:'event', title:'🎉 Discord Server Launch', body:"The official Alistair's Lair Discord is live! Join for exclusive previews and community chat.", date:'May 15, 2025' },
 ];
+
+async function loadAnnouncementsSheet() {
+  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1596607113&output=csv';
+  try {
+    const csv = await fetchCSV(url);
+    const rows = parseCSV(csv);
+    if (rows.length < 2) return;
+    const h = rows[0].map(x => x.toLowerCase().trim());
+    const titleIdx = h.findIndex(x => x.includes('title') || x.includes('name'));
+    const bodyIdx  = h.findIndex(x => x.includes('body') || x.includes('content') || x.includes('desc') || x.includes('text'));
+    const dateIdx  = h.findIndex(x => x.includes('date'));
+    const typeIdx  = h.findIndex(x => x.includes('type') || x.includes('category'));
+    const loaded = rows.slice(1)
+      .filter(r => r.some(c => c.trim()))
+      .map(r => ({
+        title: titleIdx >= 0 ? r[titleIdx].trim() : 'Untitled',
+        body:  bodyIdx  >= 0 ? r[bodyIdx].trim()  : '',
+        date:  dateIdx  >= 0 ? r[dateIdx].trim()  : '',
+        type:  typeIdx  >= 0 ? r[typeIdx].trim().toLowerCase() : 'announcement',
+      }))
+      .filter(a => a.title);
+    if (loaded.length) {
+      // Sheet rows: newest at top (row 2 = most recent) — keep that order
+      announcements = loaded;
+      renderAnnouncements('home-announcements', 3);
+      renderAnnouncements('all-announcements');
+    }
+  } catch(e) { console.warn('Could not load announcements sheet:', e); }
+}
 
 let challenges = [
   { id:1, name:'Medieval Fortress Challenge', date:'April 2025', winner:'🏆 BuildKingXL', description:"Contestants had to build the most imposing medieval fortress using only vanilla assets. Over 20 entries were submitted, with some incredible designs. BuildKingXL took the crown with a jaw-dropping castle complete with working drawbridge mechanics.", videoId:'' },
@@ -2066,14 +2116,24 @@ function showPage(name) {
 
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAnnouncements(id, limit) {
+  const isFullPage = !limit; // full page = no limit = show Latest badge
   const data = limit ? announcements.slice(0, limit) : announcements;
-  document.getElementById(id).innerHTML = data.map(a => `
-    <div class="ann-card">
-      <span class="ann-badge ${a.type === 'event' ? 'event' : ''}">${a.type === 'event' ? 'Event' : 'News'}</span>
+  document.getElementById(id).innerHTML = data.map((a, idx) => {
+    const isLatest = isFullPage && idx === 0;
+    const latestBadge = isLatest
+      ? '<div class="ann-latest-badge">⚡ Latest</div>'
+      : '';
+    const typeLabel = (a.type === 'event') ? 'Event' : (a.type === 'news' ? 'News' : 'News');
+    const typeClass = (a.type === 'event') ? 'event' : '';
+    return `
+    <div class="ann-card${isLatest ? ' ann-card-latest' : ''}">
+      ${latestBadge}
+      <span class="ann-badge ${typeClass}">${typeLabel}</span>
       <h3>${a.title}</h3>
       <p>${a.body}</p>
       <div class="ann-date">📅 ${a.date}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 
@@ -2890,6 +2950,8 @@ async function submitVote(challengeId, buildName, btn) {
 // ── INIT ───────────────────────────────────────────────────────────────────
 renderAnnouncements('home-announcements', 3);
 renderAnnouncements('all-announcements');
+// Load live announcements from sheet (will re-render both once loaded)
+loadAnnouncementsSheet();
 renderGallery();
 renderPartners();
 
