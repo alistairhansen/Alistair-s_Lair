@@ -920,11 +920,13 @@
   }
 
   .challenge-row-right {
-    min-width: 140px;
+    min-width: 120px;
+    max-width: 220px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .challenge-row:hover {
@@ -972,11 +974,10 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    white-space: nowrap;
   }
-  .winner-trophies { letter-spacing: 1px; font-size: 1rem; }
-  .winner-names { color: var(--gold); font-weight: 700; }
+  .winner-trophies { letter-spacing: 1px; font-size: 0.95rem; white-space: nowrap; }
+  .winner-names { color: var(--gold); font-weight: 700; white-space: nowrap; }
 
   #challenges-stats-bar {
     margin-bottom: 18px;
@@ -1100,6 +1101,56 @@
     color: var(--cream-dim);
     line-height: 1.7;
     font-size: 0.95rem;
+  }
+
+  .video-unreleased {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(10,14,35,0.95), rgba(20,26,60,0.9));
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .challenge-detail-lower {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .challenge-detail-text { flex: 1; min-width: 0; }
+
+  .intro-video-box {
+    flex-shrink: 0;
+    width: 240px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .intro-video-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cream-dim);
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .intro-video-embed {
+    position: relative;
+    padding-top: 56.25%;
+    background: #000;
+  }
+  .intro-video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 560px) {
+    .intro-video-box { width: 100%; }
+    .challenge-detail-lower { flex-direction: column; }
   }
 
   /* ── WORKSHOP ────────────────────────── */
@@ -2155,11 +2206,10 @@ function updateChallengesStats() {
 
 function renderChallengesList() {
   clearAllTimers();
-  // Display in reverse order so newest (highest #) is at top, oldest (#1) at bottom
-  const displayChallenges = challenges.slice().reverse();
-  document.getElementById('challenges-list').innerHTML = displayChallenges.map((c,_i) => {
+  // Sheet order: newest (highest #) at top, oldest (#1) at bottom
+  document.getElementById('challenges-list').innerHTML = challenges.map((c, i) => {
     // Find original index for showChallenge()
-    const origIndex = challenges.indexOf(c);
+    const origIndex = i;
     const isVoting = c.voting === 'yes' || c.voting === 'true';
     const isLive   = c.live   === 'yes' || c.live   === 'true';
     const myVote   = getMyVote(c.id);
@@ -2218,11 +2268,23 @@ function renderChallengesList() {
 
 function showChallenge(index) {
   const c = challenges[index];
-  const videoHtml = c.videoId
-    ? `<iframe src="https://www.youtube.com/embed/${c.videoId}" frameborder="0" allowfullscreen></iframe>`
-    : `<div class="challenge-video-placeholder">▶</div>`;
   const isVoting = c.voting === 'yes' || c.voting === 'true';
   const isLive   = c.live   === 'yes' || c.live   === 'true';
+  // Main recap video: hidden when live/voting (not yet released)
+  let videoHtml;
+  if (isLive || isVoting) {
+    videoHtml = `<div class="challenge-video-placeholder video-unreleased">
+      <div style="text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);">Video Not Yet Released</div>
+        <div style="font-size:0.78rem;margin-top:6px;color:rgba(255,255,255,0.3);">Check back once the challenge wraps up</div>
+      </div>
+    </div>`;
+  } else if (c.videoId) {
+    videoHtml = `<iframe src="https://www.youtube.com/embed/${c.videoId}" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    videoHtml = `<div class="challenge-video-placeholder">▶</div>`;
+  }
   const myVote   = getMyVote(c.id);
   const winnerHtml = c.winner && !isLive && !isVoting
     ? `<div class="winner-badge">🏆 Winner: ${c.winner.replace('🏆 ','')}</div>` : '';
@@ -2246,16 +2308,32 @@ function showChallenge(index) {
   const subCountHtml = subCount > 0
     ? `<span class="submission-count-badge" style="font-size:0.82rem;padding:4px 12px;">📋 ${subCount} submission${subCount !== 1 ? 's' : ''}</span>`
     : '';
+
+  // Intro video box (from sheet intro_video column)
+  const introId = c.introVideo ? extractYouTubeId(c.introVideo) : null;
+  const introVideoHtml = introId ? `
+    <div class="intro-video-box">
+      <div class="intro-video-label">📽️ Challenge Brief</div>
+      <div class="intro-video-embed">
+        <iframe src="https://www.youtube.com/embed/${introId}" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>` : '';
+
   document.getElementById('challenge-detail-content').innerHTML = `
     <div class="challenge-video-wrap">${videoHtml}</div>
     <div class="challenge-detail-body">
       <h2>${c.name}</h2>
       ${statusHtml}
       ${winnerHtml}
-      <p class="challenge-desc">${c.description}</p>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
-        ${subCountHtml}
-        <button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>
+      <div class="challenge-detail-lower">
+        <div class="challenge-detail-text">
+          <p class="challenge-desc">${c.description}</p>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
+            ${subCountHtml}
+            <button class="submissions-btn" onclick="showSubmissions(${c.id})" style="margin-top:0;">📋 View All Submissions →</button>
+          </div>
+        </div>
+        ${introVideoHtml}
       </div>
     </div>`;
   showPage('challenge-detail');
@@ -2466,6 +2544,7 @@ async function loadChallengesSheet() {
     const winnerIdx   = headers.findIndex(h => h.includes('winner'));
     const descIdx     = headers.findIndex(h => h.includes('desc'));
     const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
+    const introVideoIdx = headers.findIndex(h => h.includes('intro') && (h.includes('video') || h.includes('vid')));
     const subtitleIdx = headers.findIndex(h => h === 'subtitle');
     const votingIdx   = headers.findIndex(h => h.includes('voting') || h === 'vote');
     const liveIdx     = headers.findIndex(h => h === 'live' || h.includes('live'));
@@ -2477,12 +2556,13 @@ async function loadChallengesSheet() {
       const votingVal = votingIdx >= 0 ? r[votingIdx].trim().toLowerCase() : '';
       const liveVal   = liveIdx   >= 0 ? r[liveIdx].trim().toLowerCase()   : '';
       return {
-        id: i + 1,
+        _sheetIndex: i, // temporary, used to assign IDs after we know total count
         name:        nameIdx     >= 0 ? r[nameIdx].trim()     : 'Untitled Challenge',
         date:        dateIdx     >= 0 ? r[dateIdx].trim()     : '',
         winner:      winner.startsWith('🏆') ? winner : (winner ? '🏆 ' + winner : ''),
         description: descIdx     >= 0 ? r[descIdx].trim()     : '',
         videoId:     videoIdx    >= 0 ? r[videoIdx].trim()    : '',
+        introVideo:  introVideoIdx >= 0 ? r[introVideoIdx].trim() : '',
         subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
         voting:      votingVal,
         live:        liveVal,
@@ -2490,6 +2570,9 @@ async function loadChallengesSheet() {
         voteEnd:     voteEndIdx  >= 0 ? r[voteEndIdx].trim()  : '',
       };
     });
+    // Assign IDs so oldest (last sheet row) = #1, newest (first sheet row) = highest
+    const total = challenges.length;
+    challenges.forEach((c, i) => { c.id = total - i; delete c._sheetIndex; });
     if (!challenges.length) { list.innerHTML = '<div class="empty-msg">No challenges found in sheet.</div>'; return; }
     renderChallengesList();
     renderVotingPage();
