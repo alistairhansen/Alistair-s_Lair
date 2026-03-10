@@ -3263,33 +3263,16 @@ function setFeaturedVideo(input) {
 }
 
 // Load Grid (about page text) from hardcoded sheet URL
-async function loadGridSheet() {
-  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1955359426&output=csv';
-  const csv = await fetchCSV(url);
-  if (!csv) return;
-  const rows = parseCSV(csv);
-  // Sheet layout: col A = key, col B = value (vertical, one pair per row)
-  const map = {};
-  for (const row of rows) {
-    const k = (row[0] || '').trim();
-    const v = (row[1] || '').trim();
-    if (k) map[k] = v;
-  }
-  // Intro paragraphs
-  if (map['intro1']) {
-    const el = document.getElementById('about-intro1');
-    if (el) el.textContent = map['intro1'];
-  }
-  if (map['intro2']) {
-    const el = document.getElementById('about-intro2');
-    if (el) el.textContent = map['intro2'];
-  }
+// ── CACHE HELPERS ─────────────────────────────────────────────────────────────
+function cacheSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
+function cacheGet(key)      { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
 
-  // Featured video: read 'featured_video' key (YouTube URL or video ID)
-  if (map['featured_video']) {
-    setFeaturedVideo(map['featured_video'].trim());
-  }
-  // FAQ cards: title + description
+// ── APPLY ABOUT/GRID DATA TO THE PAGE ─────────────────────────────────────────
+function applyGridMap(map) {
+  if (!map) return;
+  if (map['intro1']) { const el = document.getElementById('about-intro1'); if (el) el.textContent = map['intro1']; }
+  if (map['intro2']) { const el = document.getElementById('about-intro2'); if (el) el.textContent = map['intro2']; }
+  if (map['featured_video']) { setFeaturedVideo(map['featured_video'].trim()); }
   const cards = [
     { key: 'build_challenges', titleId: 'faq-title-0', descId: 'faq-desc-0' },
     { key: 'steam_workshop',   titleId: 'faq-title-1', descId: 'faq-desc-1' },
@@ -3299,15 +3282,29 @@ async function loadGridSheet() {
   for (const card of cards) {
     const titleKey = card.key + '_title';
     const descKey  = card.key + '_desc';
-    if (map[titleKey]) {
-      const el = document.getElementById(card.titleId);
-      if (el) el.textContent = map[titleKey];
-    }
-    if (map[descKey]) {
-      const el = document.getElementById(card.descId);
-      if (el) el.textContent = map[descKey];
-    }
+    if (map[titleKey]) { const el = document.getElementById(card.titleId); if (el) el.textContent = map[titleKey]; }
+    if (map[descKey])  { const el = document.getElementById(card.descId);  if (el) el.textContent = map[descKey];  }
   }
+}
+
+// Apply cache immediately so the page shows real content before the fetch finishes
+applyGridMap(cacheGet('al_grid_map'));
+
+async function loadGridSheet() {
+  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1955359426&output=csv';
+  try {
+    const csv = await fetchCSV(url);
+    if (!csv) return;
+    const rows = parseCSV(csv);
+    const map = {};
+    for (const row of rows) {
+      const k = (row[0] || '').trim();
+      const v = (row[1] || '').trim();
+      if (k) map[k] = v;
+    }
+    cacheSet('al_grid_map', map); // save for next load
+    applyGridMap(map);
+  } catch(e) {}
 }
 loadGridSheet();
 
@@ -3324,20 +3321,9 @@ async function fetchStatsSheet() {
     const values  = rows[1];
     const map = {};
     headers.forEach((h, i) => { map[h] = (values[i] || '').trim(); });
+    cacheSet('al_stats_map', map); // save for next load
     return map;
-  } catch(e) { return {}; }
-}
-
-async function fetchYouTubeSubs() {
-  const map = await fetchStatsSheet();
-  for (const [key, val] of Object.entries(map)) {
-    if ((key.includes('youtube') || key.includes('sub')) && val) {
-      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
-      if (!isNaN(num) && num > 0) return formatSubCount(num);
-      if (val) return val;
-    }
-  }
-  return null;
+  } catch(e) { return cacheGet('al_stats_map') || {}; } // fall back to cache on error
 }
 
 function formatSubCount(n) {
@@ -3346,39 +3332,45 @@ function formatSubCount(n) {
   return n.toString();
 }
 
-// Update all YouTube sub stat elements on the page
-(async function() {
-  const subCount = await fetchYouTubeSubs();
-  if (subCount) {
-    document.querySelectorAll('.yt-sub-count').forEach(el => {
-      el.textContent = subCount + ' Subs';
-    });
-    document.querySelectorAll('.yt-sub-value').forEach(el => {
-      el.textContent = subCount + '+';
-    });
+function applySubCount(subCount) {
+  if (!subCount) return;
+  document.querySelectorAll('.yt-sub-count').forEach(el => { el.textContent = subCount + ' Subs'; });
+  document.querySelectorAll('.yt-sub-value').forEach(el => { el.textContent = subCount + '+'; });
+}
+
+function applyBuildCount(buildCount) {
+  if (!buildCount) return;
+  document.querySelectorAll('.steam-builds-value').forEach(el => { el.textContent = buildCount + '+'; });
+}
+
+// Apply cached stats immediately on load
+(function() {
+  const cached = cacheGet('al_stats_map');
+  if (!cached) return;
+  for (const [key, val] of Object.entries(cached)) {
+    if ((key.includes('youtube') || key.includes('sub')) && val) {
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      applySubCount(!isNaN(num) && num > 0 ? formatSubCount(num) : val);
+    }
+    if ((key.includes('steam') || key.includes('workshop') || key.includes('build')) && val) {
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      applyBuildCount(!isNaN(num) && num > 0 ? num.toString() : val);
+    }
   }
 })();
 
-// Fetch Steam Workshop submission count from Google Sheet tab (gid=1270814995)
-async function fetchSteamBuilds() {
+// Then fetch fresh stats and update if they've changed
+(async function() {
   const map = await fetchStatsSheet();
   for (const [key, val] of Object.entries(map)) {
+    if ((key.includes('youtube') || key.includes('sub')) && val) {
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      applySubCount(!isNaN(num) && num > 0 ? formatSubCount(num) : val);
+    }
     if ((key.includes('steam') || key.includes('workshop') || key.includes('build')) && val) {
       const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
-      if (!isNaN(num) && num > 0) return num.toString();
-      if (val) return val;
+      applyBuildCount(!isNaN(num) && num > 0 ? num.toString() : val);
     }
-  }
-  return null;
-}
-
-// Update all Steam builds stat elements on the page
-(async function() {
-  const buildCount = await fetchSteamBuilds();
-  if (buildCount) {
-    document.querySelectorAll('.steam-builds-value').forEach(el => {
-      el.textContent = buildCount + '+';
-    });
   }
 })();
 </script>
