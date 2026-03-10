@@ -361,7 +361,7 @@
   .ann-latest-badge {
     position: absolute;
     top: -1px;
-    right: 16px;
+    left: 16px;
     background: var(--orange);
     color: var(--navy);
     font-size: 0.68rem;
@@ -2011,7 +2011,7 @@
   <div class="section-wrap" style="padding-top:0;">
     <div class="section-title">Latest News</div>
     <p class="section-sub">What's happening in the Lair</p>
-    <div class="ann-grid" id="home-announcements"></div>
+    <div id="home-announcements"></div>
   </div>
 </div>
 
@@ -2078,7 +2078,7 @@
   <div class="section-wrap">
     <div class="section-title">News &amp; Events</div>
     <p class="section-sub">Announcements, upcoming events, and community updates</p>
-    <div class="ann-grid" id="all-announcements"></div>
+    <div id="all-announcements"></div>
   </div>
 </div>
 
@@ -2209,11 +2209,7 @@
 
 <script>
 // ── DATA ───────────────────────────────────────────────────────────────────
-let announcements = [
-  { type:'announcement', title:'🎉 Channel Hit 1K Subs!', body:'Massive thank you to the community — we just crossed 1,000 subscribers! More content incoming.', date:'June 2025' },
-  { type:'event', title:'🏆 June Build Challenge LIVE', body:'The June Build Challenge is now open — theme is Post-Apocalyptic Bases. Submit by June 30!', date:'June 1, 2025' },
-  { type:'announcement', title:'📺 New Video Series Starting', body:'Starting a new deep-dive series on workshop builds. First episode drops Friday.', date:'May 28, 2025' },
-];
+let announcements = []; // loaded from sheet
 
 async function loadAnnouncementsSheet() {
   const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=1596607113&output=csv';
@@ -2246,12 +2242,7 @@ async function loadAnnouncementsSheet() {
   } catch(e) { console.warn('Could not load announcements sheet:', e); }
 }
 
-let challenges = [
-  { id:1, name:'Medieval Fortress Challenge', date:'April 2025', winner:'🏆 BuildKingXL', description:"Contestants had to build the most imposing medieval fortress using only vanilla assets. Over 20 entries were submitted, with some incredible designs. BuildKingXL took the crown with a jaw-dropping castle complete with working drawbridge mechanics.", videoId:'' },
-  { id:2, name:'Sci-Fi Space Station Challenge', date:'March 2025', winner:'🏆 CosmoBuilder99', description:'The theme was futuristic space stations — floating fortresses in the stars. CosmoBuilder99 wowed everyone with a multi-ring rotating station design. An incredible display of creative engineering.', videoId:'' },
-  { id:3, name:'Post-Apocalyptic Bunker Challenge', date:'February 2025', winner:'🏆 SurvivorCraft', description:"Gritty, functional, and atmospheric — contestants built bunkers to survive the end of the world. SurvivorCraft's entry had working traps, storage systems, and beautiful environmental storytelling.", videoId:'' },
-  { id:4, name:'Fantasy Treehouse Challenge', date:'January 2025', winner:'🏆 WoodlandWizard', description:'High up in the canopy — builds had to be entirely off the ground and feel magical. WoodlandWizard delivered a sprawling multi-level treehouse village that left the whole community speechless.', videoId:'' },
-];
+let challenges = []; // loaded from sheet
 
 // Partners are loaded from Google Sheets — see loadPartnersSheet()
 let partners = [];
@@ -3186,9 +3177,15 @@ async function submitVote(challengeId, buildName, btn) {
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
-renderAnnouncements('home-announcements', 3);
-renderAnnouncements('all-announcements');
-// Load live announcements from sheet (will re-render both once loaded)
+// Show loading spinners in announcement slots until sheet data arrives
+(function() {
+  const spinner = '<div class="loading-msg"><div class="spinner"></div></div>';
+  const homeEl = document.getElementById('home-announcements');
+  const allEl  = document.getElementById('all-announcements');
+  if (homeEl) homeEl.innerHTML = spinner;
+  if (allEl)  allEl.innerHTML  = spinner;
+})();
+// Load live announcements from sheet
 loadAnnouncementsSheet();
 renderGallery();
 renderPartners();
