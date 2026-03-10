@@ -3189,17 +3189,24 @@ async function castVote(challengeId, buildName, challengeName) {
   setMyVote(challengeId, buildName);
   if (!VOTE_API_URL) return { localOnly: true };
   const sheetKey = challengeName || String(challengeId);
-  // Use GET to avoid CORS preflight issues with Apps Script
-  try {
-    const params = new URLSearchParams({
-      action: 'vote',
-      challenge_id: sheetKey,
-      build_name: buildName,
-      voter_id: getVoterId()
-    });
-    const r = await fetch(VOTE_API_URL + '?' + params.toString());
-    return await r.json();
-  } catch(e) { return { localOnly: true }; }
+  const params = new URLSearchParams({
+    action: 'vote',
+    challenge_id: sheetKey,
+    build_name: buildName,
+    voter_id: getVoterId()
+  });
+  const url = VOTE_API_URL + '?' + params.toString();
+  // Retry up to 3 times with a short delay between attempts
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(url);
+      const data = await r.json();
+      if (data.success || data.error === 'already_voted') return data;
+      // If error from script but not already_voted, retry
+    } catch(e) {}
+    if (attempt < 3) await new Promise(res => setTimeout(res, 1500 * attempt));
+  }
+  return { localOnly: true };
 }
 
 async function fetchTallies(challengeId, challengeName) {
