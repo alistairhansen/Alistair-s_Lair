@@ -410,6 +410,40 @@
     font-weight: 600;
   }
 
+  .ann-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .ann-card-footer .ann-date { margin-top: 0; }
+
+  .ann-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: filter 0.15s, transform 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .ann-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  .ann-btn-youtube  { background: #ff0000; color: #fff; }
+  .ann-btn-steam    { background: #1b2838; color: #c6d4df; border: 1px solid #4c6b8a; }
+  .ann-btn-discord  { background: #5865f2; color: #fff; }
+  .ann-btn-challenges { background: var(--gold); color: var(--navy); }
+  .ann-btn-generic  { background: rgba(255,255,255,0.1); color: var(--cream); border: 1px solid rgba(255,255,255,0.2); }
+
   /* ── HOME PARTNERS STRIP ─────────────── */
   .home-partners-strip {
     display: grid;
@@ -2092,6 +2126,7 @@ async function loadAnnouncementsSheet() {
     const bodyIdx  = h.findIndex(x => x.includes('body') || x.includes('content') || x.includes('desc') || x.includes('text'));
     const dateIdx  = h.findIndex(x => x.includes('date'));
     const typeIdx  = h.findIndex(x => x.includes('type') || x.includes('category'));
+    const linkIdx  = h.findIndex(x => x.includes('link') || x.includes('url') || x.includes('button'));
     const loaded = rows.slice(1)
       .filter(r => r.some(c => c.trim()))
       .map(r => ({
@@ -2099,6 +2134,7 @@ async function loadAnnouncementsSheet() {
         body:  bodyIdx  >= 0 ? r[bodyIdx].trim()  : '',
         date:  dateIdx  >= 0 ? r[dateIdx].trim()  : '',
         type:  typeIdx  >= 0 ? r[typeIdx].trim().toLowerCase() : 'announcement',
+        link:  linkIdx  >= 0 ? r[linkIdx].trim()  : '',
       }))
       .filter(a => a.title);
     if (loaded.length) {
@@ -2166,17 +2202,44 @@ function renderAnnouncements(id, limit) {
   }
 }
 
+function annLinkButton(link) {
+  if (!link) return '';
+  const l = link.trim().toLowerCase();
+  // Special internal keyword → challenges page
+  if (l === 'challenges' || l === 'challenge') {
+    return '<button class="ann-btn ann-btn-challenges" onclick="showPage(\'challenges\')">🏆 View Challenges</button>';
+  }
+  // YouTube
+  if (l.includes('youtube.com') || l.includes('youtu.be')) {
+    return '<a class="ann-btn ann-btn-youtube" href="' + link + '" target="_blank">▶ Watch on YouTube</a>';
+  }
+  // Steam
+  if (l.includes('steampowered.com') || l.includes('steam.')) {
+    return '<a class="ann-btn ann-btn-steam" href="' + link + '" target="_blank">🎮 View on Steam</a>';
+  }
+  // Discord
+  if (l.includes('discord.gg') || l.includes('discord.com')) {
+    return '<a class="ann-btn ann-btn-discord" href="' + link + '" target="_blank">💬 Join Discord</a>';
+  }
+  // Generic fallback
+  return '<a class="ann-btn ann-btn-generic" href="' + link + '" target="_blank">🔗 Learn More</a>';
+}
+
 function renderAnnCard(a, isLatest) {
   const latestBadge = isLatest ? '<div class="ann-latest-badge">⚡ Latest</div>' : '';
   const typeLabel = (a.type === 'event') ? 'Event' : 'News';
   const typeClass = (a.type === 'event') ? 'event' : '';
+  const btnHtml = annLinkButton(a.link || '');
   return `
     <div class="ann-card${isLatest ? ' ann-card-latest' : ''}">
       ${latestBadge}
       <span class="ann-badge ${typeClass}">${typeLabel}</span>
       <h3>${a.title}</h3>
       <p>${a.body}</p>
-      <div class="ann-date">📅 ${a.date}</div>
+      <div class="ann-card-footer">
+        <div class="ann-date">📅 ${a.date}</div>
+        ${btnHtml}
+      </div>
     </div>`;
 }
 
