@@ -363,6 +363,33 @@
     border-radius: 0 0 8px 8px;
   }
 
+  .ann-older-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px 0 24px;
+    color: var(--cream-dim);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.6;
+  }
+  .ann-older-divider::before,
+  .ann-older-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .ann-grid-older .ann-card {
+    opacity: 0.75;
+  }
+  .ann-grid-older .ann-card:hover {
+    opacity: 1;
+  }
+
   .ann-card h3 {
     font-size: 1.1rem;
     font-weight: 800;
@@ -2116,16 +2143,34 @@ function showPage(name) {
 
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAnnouncements(id, limit) {
-  const isFullPage = !limit; // full page = no limit = show Latest badge
+  const isFullPage = !limit;
   const data = limit ? announcements.slice(0, limit) : announcements;
-  document.getElementById(id).innerHTML = data.map((a, idx) => {
-    const isLatest = isFullPage && idx === 0;
-    const latestBadge = isLatest
-      ? '<div class="ann-latest-badge">⚡ Latest</div>'
-      : '';
-    const typeLabel = (a.type === 'event') ? 'Event' : (a.type === 'news' ? 'News' : 'News');
-    const typeClass = (a.type === 'event') ? 'event' : '';
-    return `
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (isFullPage && data.length > 6) {
+    const latest = data.slice(0, 6);
+    const older  = data.slice(6);
+    el.innerHTML =
+      '<div class="ann-grid">' +
+      latest.map((a, idx) => renderAnnCard(a, idx === 0)).join('') +
+      '</div>' +
+      '<div class="ann-older-divider"><span>Older News</span></div>' +
+      '<div class="ann-grid ann-grid-older">' +
+      older.map(a => renderAnnCard(a, false)).join('') +
+      '</div>';
+  } else {
+    el.innerHTML = '<div class="ann-grid">' +
+      data.map((a, idx) => renderAnnCard(a, isFullPage && idx === 0)).join('') +
+      '</div>';
+  }
+}
+
+function renderAnnCard(a, isLatest) {
+  const latestBadge = isLatest ? '<div class="ann-latest-badge">⚡ Latest</div>' : '';
+  const typeLabel = (a.type === 'event') ? 'Event' : 'News';
+  const typeClass = (a.type === 'event') ? 'event' : '';
+  return `
     <div class="ann-card${isLatest ? ' ann-card-latest' : ''}">
       ${latestBadge}
       <span class="ann-badge ${typeClass}">${typeLabel}</span>
@@ -2133,7 +2178,6 @@ function renderAnnouncements(id, limit) {
       <p>${a.body}</p>
       <div class="ann-date">📅 ${a.date}</div>
     </div>`;
-  }).join('');
 }
 
 
