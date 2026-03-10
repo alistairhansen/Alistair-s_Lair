@@ -452,6 +452,8 @@
     white-space: nowrap;
     transition: filter 0.15s, transform 0.15s;
     letter-spacing: 0.3px;
+    position: relative;
+    z-index: 2;
   }
   .ann-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
@@ -2301,24 +2303,20 @@ function renderAnnouncements(id, limit) {
 function annLinkButton(link) {
   if (!link) return '';
   const l = link.trim().toLowerCase();
-  // Special internal keyword → challenges page
+  const stop = 'onclick="event.stopPropagation()"';
   if (l === 'challenges' || l === 'challenge') {
-    return '<button class="ann-btn ann-btn-challenges" onclick="showPage(\'challenges\')">🏆 View Challenges</button>';
+    return `<button class="ann-btn ann-btn-challenges" onclick="event.stopPropagation();showPage('challenges')">🏆 View Challenges</button>`;
   }
-  // YouTube
   if (l.includes('youtube.com') || l.includes('youtu.be')) {
-    return '<a class="ann-btn ann-btn-youtube" href="' + link + '" target="_blank">▶ Watch on YouTube</a>';
+    return `<a class="ann-btn ann-btn-youtube" href="${link}" target="_blank" ${stop}>▶ Watch on YouTube</a>`;
   }
-  // Steam
   if (l.includes('steampowered.com') || l.includes('steam.')) {
-    return '<a class="ann-btn ann-btn-steam" href="' + link + '" target="_blank">🎮 View on Steam</a>';
+    return `<a class="ann-btn ann-btn-steam" href="${link}" target="_blank" ${stop}>🎮 View on Steam</a>`;
   }
-  // Discord
   if (l.includes('discord.gg') || l.includes('discord.com')) {
-    return '<a class="ann-btn ann-btn-discord" href="' + link + '" target="_blank">💬 Join Discord</a>';
+    return `<a class="ann-btn ann-btn-discord" href="${link}" target="_blank" ${stop}>💬 Join Discord</a>`;
   }
-  // Generic fallback
-  return '<a class="ann-btn ann-btn-generic" href="' + link + '" target="_blank">🔗 Learn More</a>';
+  return `<a class="ann-btn ann-btn-generic" href="${link}" target="_blank" ${stop}>🔗 Learn More</a>`;
 }
 
 function renderAnnCard(a, isLatest) {
