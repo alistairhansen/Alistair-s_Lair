@@ -2486,9 +2486,7 @@ function annLinkButton(link) {
   // Check if link matches a partner name — if so use their URL
   const partnerMatch = partners.find(p => p.name.toLowerCase() === link.trim().toLowerCase());
   if (partnerMatch) {
-    const url = partnerMatch.url && partnerMatch.url !== '#' ? partnerMatch.url : (partnerMatch.discord || partnerMatch.youtube || '');
-    if (!url) return '';
-    return `<a class="ann-btn ann-btn-generic" href="${url}" target="_blank" ${stop}>🤝 Visit ${partnerMatch.name}</a>`;
+    return `<button class="ann-btn ann-btn-generic" onclick="event.stopPropagation();showPage('partners')">🤝 View ${partnerMatch.name}</button>`;
   }
   const l = link.trim().toLowerCase();
   if (l === 'challenges' || l === 'challenge') {
