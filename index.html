@@ -318,6 +318,7 @@
     display: flex;
     flex-direction: column;
     height: 220px;
+    overflow: hidden;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
   }
@@ -358,23 +359,21 @@
     height: 4px;
   }
   .ann-latest-wrap {
-    display: flex;
-    flex-direction: column;
+    display: contents;
   }
   .ann-latest-badge {
-    align-self: flex-start;
+    position: absolute;
+    top: 12px;
+    right: 12px;
     background: var(--orange);
     color: var(--navy);
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 900;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 5px 14px 5px;
-    border-radius: 6px 6px 0 0;
-    margin-left: 16px;
-    position: relative;
-    bottom: -1px;
-    z-index: 1;
+    padding: 3px 10px;
+    border-radius: 20px;
+    z-index: 2;
   }
 
   .ann-older-divider {
@@ -2392,8 +2391,8 @@ async function loadAnnouncementsSheet() {
       }))
       .filter(a => a.title);
     if (loaded.length) {
-      // Sheet rows: newest at top (row 2 = most recent) — keep that order
-      announcements = loaded;
+
+      announcements = loaded.reverse();
       renderAnnouncements('home-announcements', 3);
       renderAnnouncements('all-announcements');
     }
