@@ -2524,14 +2524,7 @@ function annLinkButton(link) {
   return `<a class="ann-btn ann-btn-generic" href="${link}" target="_blank" ${stop}>🔗 Learn More</a>`;
 }
 
-function refreshAnnCardButtons() {
-  document.querySelectorAll('.ann-card-btn-slot').forEach(slot => {
-    const link = slot.getAttribute('data-link') || '';
-    slot.innerHTML = annLinkButton(link);
-  });
-}
-
-
+function renderAnnCard(a, isLatest) {
   const typeLabel = (a.type === 'event') ? 'Event' : 'News';
   const typeClass = (a.type === 'event') ? 'event' : '';
   const btnHtml = annLinkButton(a.link || '');
@@ -2543,7 +2536,7 @@ function refreshAnnCardButtons() {
       <p>${a.body}</p>
       <div class="ann-card-footer">
         <div class="ann-date">📅 ${a.date}</div>
-        <div class="ann-card-btn-slot" data-link="${(a.link||'').replace(/"/g,'&quot;')}">${btnHtml}</div>
+        ${btnHtml}
       </div>
       <div class="ann-show-more">Show More →</div>
     </div>`;
@@ -3081,7 +3074,7 @@ async function loadPartnersSheet() {
     }));
     if (!partners.length) { grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No partners found.</div>'; return; }
     renderPartners();
-    refreshAnnCardButtons();
+    // Save URL so it persists across page views
     localStorage.setItem('partners-sheet-url', url);
   } catch(e) {
     grid.innerHTML = `<div class="empty-msg" style="grid-column:1/-1">⚠️ Couldn't load the sheet.<br><br>Error: ${e.message}</div>`;
