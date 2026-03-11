@@ -782,6 +782,12 @@
     overflow: hidden;
   }
 
+  .partner-card.partner-highlight {
+    border-color: var(--orange) !important;
+    box-shadow: 0 0 0 3px rgba(245,131,31,0.4), 0 0 24px rgba(245,131,31,0.3);
+    transform: translateY(-3px);
+    transition: box-shadow 0.3s, border-color 0.3s;
+  }
   .partner-card:hover {
     border-color: var(--orange);
     transform: translateY(-3px);
@@ -2455,6 +2461,20 @@ function showPage(name) {
   window.scrollTo(0, 0);
 }
 
+function showAndHighlightPartner(name) {
+  showPage('partners');
+  // Wait for page to render then find and highlight the card
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.partner-card');
+    const card = Array.from(cards).find(c => c.getAttribute('data-partner-name') === name);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('partner-highlight');
+      setTimeout(() => card.classList.remove('partner-highlight'), 2500);
+    }
+  }, 150);
+}
+
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAnnouncements(id, limit) {
   const isFullPage = !limit;
@@ -2486,7 +2506,7 @@ function annLinkButton(link) {
   // Check if link matches a partner name — if so use their URL
   const partnerMatch = partners.find(p => p.name.toLowerCase() === link.trim().toLowerCase());
   if (partnerMatch) {
-    return `<button class="ann-btn ann-btn-generic" onclick="event.stopPropagation();showPage('partners')">🤝 View ${partnerMatch.name}</button>`;
+    return `<button class="ann-btn ann-btn-generic" onclick="event.stopPropagation();showAndHighlightPartner('${partnerMatch.name.replace(/'/g, "\\'")}')">🤝 View ${partnerMatch.name}</button>`;
   }
   const l = link.trim().toLowerCase();
   if (l === 'challenges' || l === 'challenge') {
@@ -2943,7 +2963,7 @@ function renderPartners() {
         buttonsHtml = '';
       }
       return `
-      <div class="partner-card">
+      <div class="partner-card" data-partner-name="${p.name}">
         <div class="partner-card-banner" style="${p.bg ? `background-image:url('${p.bg}');background-size:cover;background-position:center;` : ''}">
           <div class="partner-logo-wrap">
             ${p.logo
