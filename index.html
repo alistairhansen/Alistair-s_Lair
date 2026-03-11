@@ -373,6 +373,7 @@
   }
 
   .ann-badge.event { background: var(--gold); }
+  .ann-badge.partner { background: #5865f2; color: #fff; }
 
   .ann-card-latest {
     border-color: rgba(245,131,31,0.6);
@@ -2500,9 +2501,15 @@ function annLinkButton(link) {
 }
 
 function renderAnnCard(a, isLatest) {
-  const typeLabel = (a.type === 'event') ? 'Event' : 'News';
-  const typeClass = (a.type === 'event') ? 'event' : '';
-  const btnHtml = annLinkButton(a.link || '');
+  // Check if type matches a partner name
+  const partnerMatch = a.type && a.type !== 'event'
+    ? partners.find(p => p.name.toLowerCase() === a.type.toLowerCase())
+    : null;
+  const typeLabel = partnerMatch ? partnerMatch.name : (a.type === 'event') ? 'Event' : 'News';
+  const typeClass = partnerMatch ? 'partner' : (a.type === 'event') ? 'event' : '';
+  const btnHtml = partnerMatch
+    ? annLinkButton(partnerMatch.url && partnerMatch.url !== '#' ? partnerMatch.url : (partnerMatch.discord || partnerMatch.youtube || a.link || ''))
+    : annLinkButton(a.link || '');
   const dataAttr = `data-ann='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
   const card = `
     <div class="ann-card${isLatest ? ' ann-card-latest' : ''}" onclick="openAnnModal(this)" ${dataAttr}>
