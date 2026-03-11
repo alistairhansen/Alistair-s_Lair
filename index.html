@@ -326,6 +326,22 @@
     border-color: rgba(245,131,31,0.6);
     background: linear-gradient(135deg, var(--navy-mid), rgba(245,131,31,0.05));
   }
+  .ann-card .ann-show-more {
+    display: none;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 18px 20px 14px;
+    background: linear-gradient(to bottom, transparent, var(--navy-mid) 40%);
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--orange);
+    letter-spacing: 0.5px;
+    pointer-events: none;
+  }
+  .ann-card:hover .ann-show-more {
+    display: block;
+  }
 
   .ann-card::before {
     content: '';
@@ -360,6 +376,9 @@
   }
   .ann-latest-wrap {
     display: contents;
+  }
+  .ann-card-latest .ann-latest-badge {
+    display: block;
   }
   .ann-latest-badge {
     position: absolute;
@@ -2465,8 +2484,10 @@ function renderAnnCard(a, isLatest) {
   const typeClass = (a.type === 'event') ? 'event' : '';
   const btnHtml = annLinkButton(a.link || '');
   const dataAttr = `data-ann='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
-  const cardHtml = `
+  const latestBadge = isLatest ? '<div class="ann-latest-badge">⚡ Latest</div>' : '';
+  return `
     <div class="ann-card${isLatest ? ' ann-card-latest' : ''}" onclick="openAnnModal(this)" ${dataAttr}>
+      ${latestBadge}
       <span class="ann-badge ${typeClass}">${typeLabel}</span>
       <h3>${a.title}</h3>
       <p>${a.body}</p>
@@ -2474,14 +2495,8 @@ function renderAnnCard(a, isLatest) {
         <div class="ann-date">📅 ${a.date}</div>
         ${btnHtml}
       </div>
+      <div class="ann-show-more">Show More →</div>
     </div>`;
-  if (isLatest) {
-    return `<div class="ann-latest-wrap">
-      <div class="ann-latest-badge">⚡ Latest</div>
-      ${cardHtml}
-    </div>`;
-  }
-  return cardHtml;
 }
 
 function openAnnModal(el) {
