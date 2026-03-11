@@ -331,11 +331,10 @@
     display: none;
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 60px;
-    padding: 10px 20px 14px;
-    background: linear-gradient(to bottom, transparent, rgba(13,27,46,0.97) 50%);
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, rgba(13,27,46,0.97) 40%);
     text-align: center;
-    font-size: 0.78rem;
+    font-size: 0.68rem;
     font-weight: 800;
     color: var(--orange);
     letter-spacing: 0.5px;
@@ -344,7 +343,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 12px;
+    padding-bottom: 5px;
   }
   .ann-card .ann-show-more { display: none; }
   .ann-card:hover .ann-show-more {
@@ -2462,6 +2461,7 @@ function showPage(name) {
 }
 
 function showAndHighlightPartner(name) {
+  document.getElementById('ann-modal-overlay').classList.remove('open');
   showPage('partners');
   // Wait for page to render then find and highlight the card
   setTimeout(() => {
@@ -2510,7 +2510,7 @@ function annLinkButton(link) {
   }
   const l = link.trim().toLowerCase();
   if (l === 'challenges' || l === 'challenge') {
-    return `<button class="ann-btn ann-btn-challenges" onclick="event.stopPropagation();showPage('challenges')">🏆 View Challenges</button>`;
+    return `<button class="ann-btn ann-btn-challenges" onclick="event.stopPropagation();document.getElementById('ann-modal-overlay').classList.remove('open');showPage('challenges')">🏆 View Challenges</button>`;
   }
   if (l.includes('youtube.com') || l.includes('youtu.be')) {
     return `<a class="ann-btn ann-btn-youtube" href="${link}" target="_blank" ${stop}>▶ Watch on YouTube</a>`;
