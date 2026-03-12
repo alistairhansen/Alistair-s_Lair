@@ -3922,10 +3922,8 @@ async function loadTeamSheet() {
   const container = document.getElementById('team-grid-container');
   if (!container) return;
 
-  // Clear stale cache if it lacks the new _stars field
   const cached = cacheGet('al_team_data');
-  if (cached && cached.length && cached[0]._stars !== undefined) renderTeam(cached);
-  else cacheSet('al_team_data', null); // bust stale cache
+  if (cached && cached.length) renderTeam(cached);
 
   try {
     const csv = await fetchCSV(url);
