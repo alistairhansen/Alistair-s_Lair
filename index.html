@@ -3022,16 +3022,26 @@ async function fetchCSV(url) {
     u => 'https://thingproxy.freeboard.io/fetch/' + encodeURIComponent(u),
     u => 'https://cors.eu.org/' + u,
   ];
-  for (const proxy of proxies) {
+
+  // Race all proxies simultaneously — first valid response wins
+  const tryProxy = async (proxyFn) => {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 8000);
     try {
-      const controller = new AbortController();
-      const tid = setTimeout(() => controller.abort(), 6000);
-      const res = await fetch(proxy(url), { signal: controller.signal });
+      const res = await fetch(proxyFn(url), { signal: controller.signal });
       clearTimeout(tid);
-      if (res.ok) { const text = await res.text(); if (text.trim()) return text; }
-    } catch(e) {}
-  }
-  throw new Error('All proxies failed — check your sheet is published to the web');
+      if (!res.ok) throw new Error('bad status');
+      const text = await res.text();
+      if (!text.trim()) throw new Error('empty response');
+      return text;
+    } catch(e) {
+      clearTimeout(tid);
+      throw e;
+    }
+  };
+
+  return Promise.any(proxies.map(p => tryProxy(p)))
+    .catch(() => { throw new Error('All proxies failed — check your sheet is published to the web'); });
 }
 
 async function loadPartnersSheet() {
