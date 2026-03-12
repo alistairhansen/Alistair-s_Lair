@@ -1151,6 +1151,173 @@
     line-height: 1.6;
   }
 
+  /* ── TEAM PAGE ───────────────────────── */
+  .team-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 2rem 60px;
+  }
+
+  .team-page-title {
+    font-family: 'Bangers', cursive;
+    font-size: 2.6rem;
+    letter-spacing: 3px;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+
+  .team-page-sub {
+    color: var(--cream-dim);
+    font-size: 0.9rem;
+    margin-bottom: 36px;
+  }
+
+  .team-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--cream-dim);
+    font-size: 0.95rem;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .team-card {
+    background: var(--navy-mid);
+    border: 1px solid rgba(245,131,31,0.2);
+    border-radius: 14px;
+    padding: 28px 24px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .team-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--gold));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .team-card:hover {
+    border-color: rgba(245,131,31,0.5);
+    box-shadow: 0 6px 28px rgba(245,131,31,0.1);
+  }
+
+  .team-card:hover::before { opacity: 1; }
+
+  .team-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--orange);
+    box-shadow: 0 0 20px rgba(245,131,31,0.25);
+    margin-bottom: 14px;
+    background: var(--navy-light);
+  }
+
+  .team-avatar-placeholder {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--navy-light);
+    border: 3px solid var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: var(--orange);
+    margin-bottom: 14px;
+  }
+
+  .team-name {
+    font-family: 'Bangers', cursive;
+    font-size: 1.4rem;
+    letter-spacing: 1.5px;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+
+  .team-role {
+    display: inline-block;
+    background: rgba(245,131,31,0.15);
+    border: 1px solid rgba(245,131,31,0.35);
+    color: var(--orange-light);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .team-bio {
+    color: var(--cream-dim);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    flex: 1;
+  }
+
+  .team-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .team-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .team-link-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .team-link-discord {
+    background: #5865f2;
+    color: #fff;
+    border-color: #4752c4;
+  }
+
+  .team-link-steam {
+    background: #1b2838;
+    color: #c6d4df;
+    border-color: #4c6b8a;
+  }
+
+  .team-link-youtube {
+    background: #ff0000;
+    color: #fff;
+    border-color: #c00;
+  }
+
+  .team-link-website {
+    background: var(--navy-light);
+    color: var(--cream);
+    border-color: rgba(245,131,31,0.4);
+  }
+
   /* ── CHALLENGES ──────────────────────── */
   .challenges-list {
     display: flex;
@@ -2076,6 +2243,7 @@
     <ul>
       <li><a href="#" class="active" id="mob-nav-home" onclick="showPage('home');closeMobileMenu()">Home</a></li>
       <li><a href="#" id="mob-nav-about" onclick="showPage('about');closeMobileMenu()">About</a></li>
+      <li><a href="#" id="mob-nav-team" onclick="showPage('team');closeMobileMenu()">The Team</a></li>
       <li><a href="#" id="mob-nav-announcements" onclick="showPage('announcements');closeMobileMenu()">News &amp; Events</a></li>
       <li><a href="#" id="mob-nav-challenges" onclick="showPage('challenges');closeMobileMenu()">Challenges</a></li>
       <li><a href="#" id="mob-nav-gallery" onclick="showPage('gallery');closeMobileMenu()">Gallery</a></li>
@@ -2090,6 +2258,7 @@
   <ul class="nav-links">
     <li><a href="#" class="active" id="nav-home" onclick="showPage('home')">Home</a></li>
     <li><a href="#" id="nav-about" onclick="showPage('about')">About</a></li>
+    <li><a href="#" id="nav-team" onclick="showPage('team')">The Team</a></li>
     <li><a href="#" id="nav-announcements" onclick="showPage('announcements')">News &amp; Events</a></li>
     <li>
       <a href="#" id="nav-challenges" onclick="showPage('challenges')" style="position:relative;">Challenges<span id="nav-dot-voting" style="display:none;position:absolute;top:3px;right:-4px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;pointer-events:none;"></span></a>
@@ -2294,6 +2463,17 @@
   <div id="challenge-detail">
     <button class="back-btn" onclick="showPage('challenges')">← Back to Challenges</button>
     <div class="challenge-detail-card" id="challenge-detail-content"></div>
+  </div>
+</div>
+
+<!-- ── TEAM PAGE ────────────────────────── -->
+<div id="page-team" class="page">
+  <div class="team-wrap">
+    <h2 class="team-page-title">The Team</h2>
+    <p class="team-page-sub">The crew behind Alistair's Lair</p>
+    <div id="team-grid-container" class="team-loading">
+      <div class="spinner"></div>
+    </div>
   </div>
 </div>
 
@@ -3641,7 +3821,88 @@ async function loadGridSheet() {
     applyGridMap(map);
   } catch(e) {}
 }
-loadGridSheet();
+// ── TEAM PAGE ──────────────────────────────────────────────────────────────
+// Sheet gid=602236676
+// Expected columns: name, role, bio, avatar, discord, steam, youtube, website
+async function loadTeamSheet() {
+  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=602236676&output=csv';
+  const container = document.getElementById('team-grid-container');
+  if (!container) return;
+
+  // Try cache first
+  const cached = cacheGet('al_team_data');
+  if (cached && cached.length) renderTeam(cached);
+
+  try {
+    const csv = await fetchCSV(url);
+    if (!csv) return;
+    const rows = parseCSV(csv);
+    if (rows.length < 2) {
+      if (!cached || !cached.length) container.innerHTML = '<p style="color:var(--cream-dim);text-align:center;">No team members found. Add rows to the Team sheet.</p>';
+      return;
+    }
+
+    // First row = headers
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const members = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.some(c => c.trim())) continue; // skip blank rows
+      const m = {};
+      headers.forEach((h, idx) => { m[h] = (row[idx] || '').trim(); });
+      if (!m.name) continue;
+      members.push(m);
+    }
+
+    cacheSet('al_team_data', members);
+    renderTeam(members);
+  } catch(e) {
+    if (!cached || !cached.length) {
+      container.innerHTML = '<p style="color:var(--cream-dim);text-align:center;">Could not load team data.</p>';
+    }
+  }
+}
+
+function renderTeam(members) {
+  const container = document.getElementById('team-grid-container');
+  if (!container || !members || !members.length) return;
+
+  const cards = members.map(m => {
+    const initials = m.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const avatar = m.avatar
+      ? `<img class="team-avatar" src="${escHtml(m.avatar)}" alt="${escHtml(m.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="team-avatar-placeholder" style="display:none">${initials}</div>`
+      : `<div class="team-avatar-placeholder">${initials}</div>`;
+
+    const role = m.role ? `<span class="team-role">${escHtml(m.role)}</span>` : '';
+    const bio = m.bio ? `<p class="team-bio">${escHtml(m.bio)}</p>` : '<p class="team-bio"></p>';
+
+    const links = [];
+    if (m.discord)  links.push(`<a class="team-link-btn team-link-discord" href="${escHtml(m.discord)}" target="_blank">💬 Discord</a>`);
+    if (m.steam)    links.push(`<a class="team-link-btn team-link-steam" href="${escHtml(m.steam)}" target="_blank">🎮 Steam</a>`);
+    if (m.youtube)  links.push(`<a class="team-link-btn team-link-youtube" href="${escHtml(m.youtube)}" target="_blank">▶ YouTube</a>`);
+    if (m.website)  links.push(`<a class="team-link-btn team-link-website" href="${escHtml(m.website)}" target="_blank">🌐 Website</a>`);
+
+    const linksHtml = links.length ? `<div class="team-links">${links.join('')}</div>` : '';
+
+    return `<div class="team-card">
+      ${avatar}
+      <div class="team-name">${escHtml(m.name)}</div>
+      ${role}
+      ${bio}
+      ${linksHtml}
+    </div>`;
+  }).join('');
+
+  container.className = 'team-grid';
+  container.innerHTML = cards;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadTeamSheet();
 
 // Fetch YouTube subscriber count from Google Sheet tab (gid=1270814995)
 // Sheet layout: row 1 = headers (e.g. youtube_subs, steam_builds), row 2 = values
