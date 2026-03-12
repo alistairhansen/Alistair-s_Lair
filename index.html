@@ -3287,13 +3287,11 @@ function renderPartners() {
   }
 }
 async function fetchCSV(url) {
-  // Bust Google's server-side cache by appending a timestamp
-  const bustUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
   // Try fetching the published Google Sheet directly first — it supports CORS
   try {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(bustUrl, { signal: controller.signal, cache: 'no-store' });
+    const res = await fetch(url, { signal: controller.signal });
     clearTimeout(tid);
     if (res.ok) {
       const text = await res.text();
@@ -3314,7 +3312,7 @@ async function fetchCSV(url) {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
     try {
-      const res = await fetch(proxyFn(bustUrl), { signal: controller.signal, cache: 'no-store' });
+      const res = await fetch(proxyFn(url), { signal: controller.signal });
       clearTimeout(tid);
       if (!res.ok) throw new Error('bad status');
       const text = await res.text();
@@ -3914,6 +3912,8 @@ async function loadGridSheet() {
     applyGridMap(map);
   } catch(e) {}
 }
+loadGridSheet();
+
 // ── TEAM PAGE ──────────────────────────────────────────────────────────────
 // Sheet gid=602236676
 // Columns: name, role, bio, avatar, discord, steam, youtube, website, good, bad
