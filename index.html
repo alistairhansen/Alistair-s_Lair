@@ -1320,19 +1320,18 @@
 
   /* ── TEAM STAR RATING ────────────────── */
   .team-rating-wrap {
-    position: absolute;
-    top: 12px;
-    right: 12px;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    align-items: center;
+    gap: 4px;
+    margin: 8px 0 12px;
+    width: 100%;
   }
 
   .team-stars {
     display: flex;
-    gap: 2px;
-    font-size: 0.95rem;
+    gap: 3px;
+    font-size: 1.2rem;
     line-height: 1;
     filter: drop-shadow(0 0 4px rgba(232,184,75,0.35));
   }
@@ -1369,9 +1368,9 @@
   .team-rating-tooltip .tip {
     display: none;
     position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    transform: none;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--navy-light);
     border: 1px solid rgba(245,131,31,0.3);
     border-radius: 8px;
@@ -1388,11 +1387,11 @@
   .team-rating-tooltip .tip::after {
     content: '';
     position: absolute;
-    bottom: 100%;
-    right: 10px;
-    transform: none;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
     border: 6px solid transparent;
-    border-bottom-color: rgba(245,131,31,0.3);
+    border-top-color: rgba(245,131,31,0.3);
   }
 
   .team-rating-tooltip:hover .tip { display: block; }
