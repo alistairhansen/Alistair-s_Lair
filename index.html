@@ -1318,6 +1318,100 @@
     border-color: rgba(245,131,31,0.4);
   }
 
+  /* ── TEAM STAR RATING ────────────────── */
+  .team-rating-wrap {
+    margin: 10px 0 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .team-stars {
+    display: flex;
+    gap: 3px;
+    font-size: 1.35rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 4px rgba(232,184,75,0.35));
+  }
+
+  .team-star { color: var(--gold); }
+  .team-star-half { color: var(--gold); }
+  .team-star-empty { color: rgba(232,184,75,0.2); }
+
+  .team-rating-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+  }
+
+  .team-rating-breakdown {
+    display: flex;
+    gap: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .team-rating-good {
+    color: #4ade80;
+  }
+
+  .team-rating-bad {
+    color: #f87171;
+  }
+
+  .team-rating-tooltip {
+    position: relative;
+    cursor: default;
+  }
+
+  .team-rating-tooltip .tip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy-light);
+    border: 1px solid rgba(245,131,31,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    width: 200px;
+    font-size: 0.8rem;
+    color: var(--cream);
+    z-index: 50;
+    text-align: left;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .team-rating-tooltip .tip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(245,131,31,0.3);
+  }
+
+  .team-rating-tooltip:hover .tip { display: block; }
+
+  .tip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .tip-row:last-child { border-bottom: none; }
+  .tip-label { color: var(--cream-dim); font-size: 0.75rem; }
+  .tip-val-good { color: #4ade80; font-weight: 800; }
+  .tip-val-bad  { color: #f87171; font-weight: 800; }
+
   /* ── CHALLENGES ──────────────────────── */
   .challenges-list {
     display: flex;
@@ -3823,13 +3917,14 @@ async function loadGridSheet() {
 }
 // ── TEAM PAGE ──────────────────────────────────────────────────────────────
 // Sheet gid=602236676
-// Expected columns: name, role, bio, avatar, discord, steam, youtube, website
+// Columns: name, role, bio, avatar, discord, steam, youtube, website, good, bad
+// good and bad are numbers 0–10. Stars = avg(good, bad) mapped to 0–5.
+
 async function loadTeamSheet() {
   const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNk0I7RmftKWSywUs1lAUvmBSSaCDGor84JjaeKyHrbj2fucT8b5AHVhu03NguC3xBFdJ_e6FlIB3h/pub?gid=602236676&output=csv';
   const container = document.getElementById('team-grid-container');
   if (!container) return;
 
-  // Try cache first
   const cached = cacheGet('al_team_data');
   if (cached && cached.length) renderTeam(cached);
 
@@ -3842,15 +3937,20 @@ async function loadTeamSheet() {
       return;
     }
 
-    // First row = headers
     const headers = rows[0].map(h => h.toLowerCase().trim());
     const members = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      if (!row.some(c => c.trim())) continue; // skip blank rows
+      if (!row.some(c => c.trim())) continue;
       const m = {};
       headers.forEach((h, idx) => { m[h] = (row[idx] || '').trim(); });
       if (!m.name) continue;
+
+      const good = parseFloat(m.good);
+      const bad  = parseFloat(m.bad);
+      m._good = isNaN(good) ? null : good;
+      m._bad  = isNaN(bad)  ? null : bad;
+      m._stars = calcStars(m._good, m._bad);
       members.push(m);
     }
 
@@ -3861,6 +3961,29 @@ async function loadTeamSheet() {
       container.innerHTML = '<p style="color:var(--cream-dim);text-align:center;">Could not load team data.</p>';
     }
   }
+}
+
+// good and bad are unbounded tallies. net = good - bad.
+// Stars sit at 2.5 when net=0, approach 5 as net→+∞, approach 0 as net→-∞.
+// The constant 20 controls sensitivity — tweak if you want faster/slower shifts.
+function calcStars(good, bad) {
+  if (good === null && bad === null) return null;
+  const g = good ?? 0;
+  const b = bad  ?? 0;
+  const net = g - b;
+  const raw = 2.5 + 2.5 * (net / (Math.abs(net) + 20));
+  return Math.round(Math.max(0, Math.min(5, raw)) * 2) / 2;
+}
+
+function renderStars(stars) {
+  if (stars === null) return '';
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    if (stars >= i)            html += '<span class="team-star">★</span>';
+    else if (stars >= i - 0.5) html += '<span class="team-star-half">⯨</span>';
+    else                       html += '<span class="team-star-empty">★</span>';
+  }
+  return html;
 }
 
 function renderTeam(members) {
@@ -3875,20 +3998,42 @@ function renderTeam(members) {
       : `<div class="team-avatar-placeholder">${initials}</div>`;
 
     const role = m.role ? `<span class="team-role">${escHtml(m.role)}</span>` : '';
-    const bio = m.bio ? `<p class="team-bio">${escHtml(m.bio)}</p>` : '<p class="team-bio"></p>';
+    const bio  = m.bio  ? `<p class="team-bio">${escHtml(m.bio)}</p>` : '<p class="team-bio"></p>';
+
+    let ratingHtml = '';
+    if (m._stars !== null) {
+      const tipRows = [
+        m._good !== null ? `<div class="tip-row"><span class="tip-label">Good</span><span class="tip-val-good">+${m._good}</span></div>` : '',
+        m._bad  !== null ? `<div class="tip-row"><span class="tip-label">Bad</span><span class="tip-val-bad">−${m._bad}</span></div>`   : '',
+      ].join('');
+
+      ratingHtml = `
+        <div class="team-rating-wrap team-rating-tooltip">
+          <div class="team-stars">${renderStars(m._stars)}</div>
+          <div class="team-rating-label">${m._stars.toFixed(1)} / 5.0</div>
+          <div class="team-rating-breakdown">
+            ${m._good !== null ? `<span class="team-rating-good">+${m._good} good</span>` : ''}
+            ${m._bad  !== null ? `<span class="team-rating-bad">−${m._bad} bad</span>`   : ''}
+          </div>
+          <div class="tip">
+            <div style="font-weight:800;font-size:0.8rem;margin-bottom:6px;color:var(--orange-light);">Score breakdown</div>
+            ${tipRows}
+          </div>
+        </div>`;
+    }
 
     const links = [];
-    if (m.discord)  links.push(`<a class="team-link-btn team-link-discord" href="${escHtml(m.discord)}" target="_blank">💬 Discord</a>`);
-    if (m.steam)    links.push(`<a class="team-link-btn team-link-steam" href="${escHtml(m.steam)}" target="_blank">🎮 Steam</a>`);
-    if (m.youtube)  links.push(`<a class="team-link-btn team-link-youtube" href="${escHtml(m.youtube)}" target="_blank">▶ YouTube</a>`);
-    if (m.website)  links.push(`<a class="team-link-btn team-link-website" href="${escHtml(m.website)}" target="_blank">🌐 Website</a>`);
-
+    if (m.discord) links.push(`<a class="team-link-btn team-link-discord" href="${escHtml(m.discord)}" target="_blank">💬 Discord</a>`);
+    if (m.steam)   links.push(`<a class="team-link-btn team-link-steam"   href="${escHtml(m.steam)}"   target="_blank">🎮 Steam</a>`);
+    if (m.youtube) links.push(`<a class="team-link-btn team-link-youtube" href="${escHtml(m.youtube)}" target="_blank">▶ YouTube</a>`);
+    if (m.website) links.push(`<a class="team-link-btn team-link-website" href="${escHtml(m.website)}" target="_blank">🌐 Website</a>`);
     const linksHtml = links.length ? `<div class="team-links">${links.join('')}</div>` : '';
 
     return `<div class="team-card">
       ${avatar}
       <div class="team-name">${escHtml(m.name)}</div>
       ${role}
+      ${ratingHtml}
       ${bio}
       ${linksHtml}
     </div>`;
