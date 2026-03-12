@@ -3923,8 +3923,10 @@ async function loadTeamSheet() {
   const container = document.getElementById('team-grid-container');
   if (!container) return;
 
+  // Clear stale cache if it lacks the new _stars field
   const cached = cacheGet('al_team_data');
-  if (cached && cached.length) renderTeam(cached);
+  if (cached && cached.length && cached[0]._stars !== undefined) renderTeam(cached);
+  else cacheSet('al_team_data', null); // bust stale cache
 
   try {
     const csv = await fetchCSV(url);
@@ -3986,7 +3988,12 @@ function renderStars(stars) {
 
 function renderTeam(members) {
   const container = document.getElementById('team-grid-container');
-  if (!container || !members || !members.length) return;
+  if (!container) return;
+  if (!members || !members.length) {
+    container.className = '';
+    container.innerHTML = '<p style="color:var(--cream-dim);text-align:center;padding:40px;">No team members found — check your sheet has a header row and at least one data row.</p>';
+    return;
+  }
 
   const cards = members.map(m => {
     const initials = m.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
