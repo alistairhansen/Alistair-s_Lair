@@ -3015,6 +3015,19 @@ function renderPartners() {
   }
 }
 async function fetchCSV(url) {
+  // Try fetching the published Google Sheet directly first — it supports CORS
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(tid);
+    if (res.ok) {
+      const text = await res.text();
+      if (text.trim()) return text;
+    }
+  } catch(e) {}
+
+  // Fallback: race all proxies simultaneously
   const proxies = [
     u => 'https://corsproxy.io/?' + encodeURIComponent(u),
     u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
@@ -3023,7 +3036,6 @@ async function fetchCSV(url) {
     u => 'https://cors.eu.org/' + u,
   ];
 
-  // Race all proxies simultaneously — first valid response wins
   const tryProxy = async (proxyFn) => {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
