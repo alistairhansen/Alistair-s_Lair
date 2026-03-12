@@ -1320,17 +1320,19 @@
 
   /* ── TEAM STAR RATING ────────────────── */
   .team-rating-wrap {
-    margin: 10px 0 14px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-end;
+    gap: 2px;
   }
 
   .team-stars {
     display: flex;
-    gap: 3px;
-    font-size: 1.35rem;
+    gap: 2px;
+    font-size: 0.95rem;
     line-height: 1;
     filter: drop-shadow(0 0 4px rgba(232,184,75,0.35));
   }
@@ -1348,11 +1350,7 @@
   }
 
   .team-rating-breakdown {
-    display: flex;
-    gap: 10px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    display: none;
   }
 
   .team-rating-good {
@@ -1371,9 +1369,9 @@
   .team-rating-tooltip .tip {
     display: none;
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(100% + 8px);
+    right: 0;
+    transform: none;
     background: var(--navy-light);
     border: 1px solid rgba(245,131,31,0.3);
     border-radius: 8px;
@@ -1390,11 +1388,11 @@
   .team-rating-tooltip .tip::after {
     content: '';
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 100%;
+    right: 10px;
+    transform: none;
     border: 6px solid transparent;
-    border-top-color: rgba(245,131,31,0.3);
+    border-bottom-color: rgba(245,131,31,0.3);
   }
 
   .team-rating-tooltip:hover .tip { display: block; }
