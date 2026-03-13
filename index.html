@@ -1951,6 +1951,14 @@
     color: rgba(200,185,154,0.5);
   }
 
+  .footer-version {
+    font-size: 0.7rem;
+    color: rgba(200,185,154,0.25);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    font-family: monospace;
+  }
+
   /* ── RESPONSIVE ──────────────────────── */
   @media (max-width: 640px) {
     .nav-links { display: none; }
@@ -2710,7 +2718,8 @@
       <a href="https://discord.gg/GzvQJSvT6e" target="_blank">Discord</a>
       <a href="#" onclick="showPage('partners')">Partners</a>
     </div>
-    <div class="footer-copy">© 2025 Alistair's Lair. All rights reserved.</div>
+    <div class="footer-copy">© 2026 Alistair's Lair. All rights reserved.</div>
+    <div class="footer-version">v1.0.98</div>
   </div>
 </footer>
 
@@ -3013,11 +3022,9 @@ function updateNavDots() {
   if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
 }
 function updateChallengesStats() {
-  const bar = document.getElementById('challenges-stats-bar');
-  if (!bar || !votingBuilds.length) return;
-  const total = votingBuilds.length;
-  bar.innerHTML = '<span class="challenges-stat-pill">📋 ' + total + ' total submission' + (total !== 1 ? 's' : '') + ' across all challenges</span>';
-  bar.style.display = 'block';
+  // Per-challenge counts are shown as badges on each row via renderChallengesList()
+  // Re-render the list now that votingBuilds data is available
+  if (challenges.length) renderChallengesList();
 }
 
 function renderChallengesList() {
@@ -3100,7 +3107,8 @@ function showChallenge(index) {
       </div>
     </div>`;
   } else if (c.videoId) {
-    videoHtml = `<iframe src="https://www.youtube.com/embed/${c.videoId}" frameborder="0" allowfullscreen></iframe>`;
+    const _tid = 'https://i.ytimg.com/vi/' + c.videoId + '/hqdefault.jpg';
+    videoHtml = `<div class="yt-thumb-wrap" style="background-image:url('${_tid}')" onclick="this.innerHTML='<iframe src=\'https://www.youtube.com/embed/${c.videoId}?autoplay=1\' frameborder=\'0\' allowfullscreen allow=\'autoplay\'></iframe>';this.classList.add('playing');" title="Play video"><div class="yt-thumb-play"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7C65.7 4.8 63.4 2.6 60.5 1.8 55.2 0 34 0 34 0S12.8 0 7.5 1.8C4.6 2.6 2.3 4.8 1.5 7.7 0 13 0 24 0 24s0 11 1.5 16.3c.8 2.9 3.1 5.1 6 5.9C12.8 48 34 48 34 48s21.2 0 26.5-1.8c2.9-.8 5.2-3 6-5.9C68 35 68 24 68 24s0-11-1.5-16.3z" fill="#ff0000"/><path d="M27 34l18-10-18-10v20z" fill="#fff"/></svg></div></div>`;
   } else {
     videoHtml = `<div class="challenge-video-placeholder">▶</div>`;
   }
@@ -3323,7 +3331,7 @@ async function fetchCSV(url) {
   // Try fetching the published Google Sheet directly first — it supports CORS
   try {
     const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 5000);
+    const tid = setTimeout(() => controller.abort(), 1500);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(tid);
     if (res.ok) {
@@ -3343,7 +3351,7 @@ async function fetchCSV(url) {
 
   const tryProxy = async (proxyFn) => {
     const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 8000);
+    const tid = setTimeout(() => controller.abort(), 4000);
     try {
       const res = await fetch(proxyFn(url), { signal: controller.signal });
       clearTimeout(tid);
