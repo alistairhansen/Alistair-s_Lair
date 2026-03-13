@@ -3492,7 +3492,7 @@ async function loadChallengesSheet() {
         date:        dateIdx     >= 0 ? r[dateIdx].trim()     : '',
         winner:      winner.startsWith('🏆') ? winner : (winner ? '🏆 ' + winner : ''),
         description: descIdx     >= 0 ? r[descIdx].trim()     : '',
-        videoId:     videoIdx    >= 0 ? r[videoIdx].trim()    : '',
+        videoId:     videoIdx    >= 0 ? (extractYouTubeId(r[videoIdx].trim()) || r[videoIdx].trim()) : '',
         introVideo:  introVideoIdx >= 0 ? r[introVideoIdx].trim() : '',
         subtitle:    subtitleIdx >= 0 ? r[subtitleIdx].trim() : '',
         voting:      votingVal,
