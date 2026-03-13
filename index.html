@@ -2719,7 +2719,8 @@
       <a href="#" onclick="showPage('partners')">Partners</a>
     </div>
     <div class="footer-copy">© 2026 Alistair's Lair. All rights reserved.</div>
-    <div class="footer-version">v1.0.98</div>
+    <!-- SITE_VERSION: bump this by 1 each time the file is modified -->
+    <div class="footer-version">v1.0.101</div>
   </div>
 </footer>
 
@@ -3469,7 +3470,7 @@ async function loadChallengesSheet() {
     const dateIdx     = headers.findIndex(h => h.includes('date'));
     const winnerIdx   = headers.findIndex(h => h.includes('winner'));
     const descIdx     = headers.findIndex(h => h.includes('desc'));
-    const videoIdx    = headers.findIndex(h => h.includes('video') || h.includes('videoid') || h.includes('youtube'));
+    const videoIdx    = headers.findIndex(h => h === 'videoid' || h === 'video_id' || h === 'video id' || h === 'youtube' || h === 'videoid' || (h.includes('video') && !h.includes('intro') && !h.includes('brief') && !h.includes('challenge')));
     const introVideoIdx = headers.findIndex(h =>
       (h.includes('intro') && (h.includes('video') || h.includes('vid') || h.includes('url') || h.includes('link'))) ||
       h === 'intro' || h === 'brief' || h === 'brief_video' || h === 'briefvideo' ||
