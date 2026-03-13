@@ -3107,8 +3107,7 @@ function showChallenge(index) {
       </div>
     </div>`;
   } else if (c.videoId) {
-    const _tid = 'https://i.ytimg.com/vi/' + c.videoId + '/hqdefault.jpg';
-    videoHtml = `<div class="yt-thumb-wrap" style="background-image:url('${_tid}')" onclick="this.innerHTML='<iframe src=\'https://www.youtube.com/embed/${c.videoId}?autoplay=1\' frameborder=\'0\' allowfullscreen allow=\'autoplay\'></iframe>';this.classList.add('playing');" title="Play video"><div class="yt-thumb-play"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7C65.7 4.8 63.4 2.6 60.5 1.8 55.2 0 34 0 34 0S12.8 0 7.5 1.8C4.6 2.6 2.3 4.8 1.5 7.7 0 13 0 24 0 24s0 11 1.5 16.3c.8 2.9 3.1 5.1 6 5.9C12.8 48 34 48 34 48s21.2 0 26.5-1.8c2.9-.8 5.2-3 6-5.9C68 35 68 24 68 24s0-11-1.5-16.3z" fill="#ff0000"/><path d="M27 34l18-10-18-10v20z" fill="#fff"/></svg></div></div>`;
+    videoHtml = `<div class="yt-thumb-wrap" style="background-image:url('https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg')" data-videoid="${c.videoId}" onclick="playVideo(this)" title="Play video"><div class="yt-thumb-play"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7C65.7 4.8 63.4 2.6 60.5 1.8 55.2 0 34 0 34 0S12.8 0 7.5 1.8C4.6 2.6 2.3 4.8 1.5 7.7 0 13 0 24 0 24s0 11 1.5 16.3c.8 2.9 3.1 5.1 6 5.9C12.8 48 34 48 34 48s21.2 0 26.5-1.8c2.9-.8 5.2-3 6-5.9C68 35 68 24 68 24s0-11-1.5-16.3z" fill="#ff0000"/><path d="M27 34l18-10-18-10v20z" fill="#fff"/></svg></div></div>`;
   } else {
     videoHtml = `<div class="challenge-video-placeholder">▶</div>`;
   }
@@ -3884,6 +3883,21 @@ renderPartners();
 })();
 
 // ── FEATURED VIDEO ─────────────────────────────────────────────────────────
+function playVideo(el) {
+  const id = el.getAttribute('data-videoid');
+  if (!id) return;
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+  iframe.frameBorder = '0';
+  iframe.allowFullscreen = true;
+  iframe.allow = 'autoplay; encrypted-media';
+  iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
+  el.innerHTML = '';
+  el.appendChild(iframe);
+  el.classList.add('playing');
+  el.style.cursor = 'default';
+}
+
 function extractYouTubeId(input) {
   if (!input) return null;
   // Already a bare ID (11 chars, no slashes)
