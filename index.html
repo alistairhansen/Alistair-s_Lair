@@ -2720,7 +2720,7 @@
     </div>
     <div class="footer-copy">© 2026 Alistair's Lair. All rights reserved.</div>
     <!-- SITE_VERSION: bump this by 1 each time the file is modified -->
-    <div class="footer-version">v1.0.101</div>
+    <div class="footer-version">v1.0.102</div>
   </div>
 </footer>
 
@@ -3023,8 +3023,13 @@ function updateNavDots() {
   if (dotVoting) dotVoting.style.display = hasVoting ? 'inline-block' : 'none';
 }
 function updateChallengesStats() {
-  // Per-challenge counts are shown as badges on each row via renderChallengesList()
-  // Re-render the list now that votingBuilds data is available
+  const bar = document.getElementById('challenges-stats-bar');
+  if (bar && votingBuilds.length) {
+    const total = votingBuilds.length;
+    bar.innerHTML = '<span class="challenges-stat-pill">📋 ' + total + ' total submission' + (total !== 1 ? 's' : '') + ' across all challenges</span>';
+    bar.style.display = 'block';
+  }
+  // Also re-render list so per-challenge badges show correct counts
   if (challenges.length) renderChallengesList();
 }
 
