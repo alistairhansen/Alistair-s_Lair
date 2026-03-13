@@ -3615,26 +3615,38 @@ async function fetchTallies(challengeId, challengeName) {
 // ── VOTING BUILDS DATA ─────────────────────────────────────────────────────
 let votingBuilds = [];
 
+let _votingBuildsPromise = null;
 async function loadVotingBuilds() {
-  if (!VOTING_BUILDS_SHEET_URL) return;
-  try {
-    const csv = await fetchCSV(VOTING_BUILDS_SHEET_URL);
-    const rows = parseCSV(csv);
-    if (rows.length < 2) return;
-    const h = rows[0].map(x => x.toLowerCase().trim());
-    const cIdx = h.findIndex(x => x.includes('challenge'));
-    const nIdx = h.findIndex(x => x.includes('name'));
-    const iIdx = h.findIndex(x => x.includes('image') || x.includes('img') || x.includes('photo'));
-    const dIdx = h.findIndex(x => x.includes('desc'));
-    const uIdx = h.findIndex(x => x.includes('url') || x.includes('workshop') || x.includes('link'));
-    votingBuilds = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
-      challenge:   cIdx >= 0 ? r[cIdx].trim() : '',
-      name:        nIdx >= 0 ? r[nIdx].trim() : 'Untitled',
-      image:       iIdx >= 0 ? r[iIdx].trim() : '',
-      description: dIdx >= 0 ? r[dIdx].trim() : '',
-      url:         uIdx >= 0 ? r[uIdx].trim() : '',
-    }));
-  } catch(e) { console.warn('Could not load voting builds:', e); }
+  // Return cached data immediately if already loaded
+  if (votingBuilds.length) return;
+  // Prevent duplicate in-flight fetches
+  if (_votingBuildsPromise) return _votingBuildsPromise;
+  _votingBuildsPromise = (async () => {
+    // Try localStorage cache first for instant load
+    const cached = cacheGet('al_voting_builds');
+    if (cached && cached.length) { votingBuilds = cached; }
+    if (!VOTING_BUILDS_SHEET_URL) return;
+    try {
+      const csv = await fetchCSV(VOTING_BUILDS_SHEET_URL);
+      const rows = parseCSV(csv);
+      if (rows.length < 2) return;
+      const h = rows[0].map(x => x.toLowerCase().trim());
+      const cIdx = h.findIndex(x => x.includes('challenge'));
+      const nIdx = h.findIndex(x => x.includes('name'));
+      const iIdx = h.findIndex(x => x.includes('image') || x.includes('img') || x.includes('photo'));
+      const dIdx = h.findIndex(x => x.includes('desc'));
+      const uIdx = h.findIndex(x => x.includes('url') || x.includes('workshop') || x.includes('link'));
+      votingBuilds = rows.slice(1).filter(r => r.some(c => c.trim())).map(r => ({
+        challenge:   cIdx >= 0 ? r[cIdx].trim() : '',
+        name:        nIdx >= 0 ? r[nIdx].trim() : 'Untitled',
+        image:       iIdx >= 0 ? r[iIdx].trim() : '',
+        description: dIdx >= 0 ? r[dIdx].trim() : '',
+        url:         uIdx >= 0 ? r[uIdx].trim() : '',
+      }));
+      cacheSet('al_voting_builds', votingBuilds);
+    } catch(e) { console.warn('Could not load voting builds:', e); }
+  })();
+  return _votingBuildsPromise;
 }
 
 // ── RENDER VOTING PAGE ─────────────────────────────────────────────────────
